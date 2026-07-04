@@ -92,7 +92,6 @@ app.use(
 app.use("/api", router);
 
 // ─── Global error handler ─────────────────────────────────────────────────────
-// Catches any unhandled errors thrown in route handlers.
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   const log = (req as any).log ?? logger;
   log.error({ err }, "Unhandled error");

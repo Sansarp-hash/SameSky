@@ -65,15 +65,40 @@ router.get("/me", async (req, res) => {
   return res.json(formatUser(fmUser));
 });
 
+// ─── Upgrade via Paystack reference (server-side verification) ───────────────
+// Normal flow: POST /api/paystack/checkout/mystic-premium → pay → verify.
+// This endpoint accepts a verified Paystack reference to finalize the upgrade.
 router.post("/profile/upgrade", async (req, res) => {
   const fmUser = await resolveFmUser(req, res);
   if (!fmUser) return;
-  const [user] = await db
-    .update(fmUsersTable)
-    .set({ subscriptionTier: "premium" })
-    .where(eq(fmUsersTable.id, fmUser.id))
-    .returning();
-  return res.json(formatUser(user));
+
+  const { reference } = req.body ?? {};
+  if (!reference || typeof reference !== "string") {
+    return res.status(400).json({
+      error: "Use POST /api/paystack/checkout/mystic-premium to start the upgrade.",
+    });
+  }
+
+  try {
+    const { verifyTransaction } = await import("../lib/paystackClient");
+    const data = await verifyTransaction(reference);
+
+    if (data.status !== "success" || data.metadata?.type !== "mystic_premium") {
+      return res.status(402).json({ error: "Payment not verified for Mystic Premium" });
+    }
+
+    const [upgraded] = await db
+      .update(fmUsersTable)
+      .set({ subscriptionTier: "premium" })
+      .where(eq(fmUsersTable.id, fmUser.id))
+      .returning();
+
+    return res.json(formatUser(upgraded ?? fmUser));
+  } catch (err) {
+    const log = (req as any).log ?? console;
+    log.error({ err }, "Mystic upgrade error");
+    return res.status(500).json({ error: "Upgrade failed" });
+  }
 });
 
 // ─── Ships ──────────────────────────────────────────────────────────────────

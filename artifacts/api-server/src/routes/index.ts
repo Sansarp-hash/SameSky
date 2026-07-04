@@ -10,6 +10,7 @@ import followsRouter from "./follows";
 import searchRouter from "./search";
 import storageRouter from "./storage";
 import mysticRouter from "./mystic";
+import paystackRouter from "./paystack";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use("/admin", adminRouter);
 router.use("/search", searchRouter);
 router.use("/storage", storageRouter);
 router.use("/mystic", mysticRouter);
+router.use(paystackRouter);
 
 export default router;

@@ -58,14 +58,14 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "hsl(310 100% 65%)",
-    colorForeground: "hsl(0 0% 100%)",
-    colorMutedForeground: "hsl(215 20% 65%)",
-    colorDanger: "hsl(0 84% 60%)",
-    colorBackground: "hsl(230 15% 6%)",
-    colorInput: "hsl(230 15% 15%)",
-    colorInputForeground: "hsl(0 0% 100%)",
-    colorNeutral: "hsl(215 20% 65%)",
+    colorPrimary: "hsl(38 48% 62%)",
+    colorForeground: "hsl(40 22% 95%)",
+    colorMutedForeground: "hsl(38 12% 62%)",
+    colorDanger: "hsl(0 62% 52%)",
+    colorBackground: "hsl(30 9% 5%)",
+    colorInput: "hsl(34 10% 14%)",
+    colorInputForeground: "hsl(40 22% 95%)",
+    colorNeutral: "hsl(38 12% 62%)",
     fontFamily: "'Inter', sans-serif",
     borderRadius: "0.5rem",
   },
@@ -81,7 +81,7 @@ const clerkAppearance = {
     footerActionLink: "text-primary hover:text-primary/80 font-bold",
     footerActionText: "text-muted-foreground font-medium",
     dividerText: "text-muted-foreground font-medium text-xs",
-    formButtonPrimary: "bg-primary text-white font-bold tracking-wide rounded-full hover:bg-primary/90 transition-all",
+    formButtonPrimary: "bg-primary text-primary-foreground font-bold tracking-wide rounded-full hover:bg-primary/90 transition-all",
     formFieldInput: "border border-white/10 bg-white/5 rounded-md focus:ring-1 focus:ring-primary focus:border-transparent transition-colors text-white",
   },
 };
@@ -220,7 +220,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
           <p className="text-white/50 text-sm mb-6">An unexpected error occurred. Please refresh the page.</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-all"
+            className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all"
           >
             Refresh
           </button>

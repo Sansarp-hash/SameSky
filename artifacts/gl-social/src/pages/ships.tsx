@@ -13,7 +13,6 @@ interface Ship {
   tags: string[];
   fansCount: number;
   status: "canon" | "near-canon" | "fan-ship";
-  gradient: string;
 }
 
 const SHIPS: Ship[] = [
@@ -26,7 +25,6 @@ const SHIPS: Ship[] = [
     tags: ["canon", "slow burn", "rivals to lovers"],
     fansCount: 12840,
     status: "canon",
-    gradient: "from-pink-500/20 to-purple-600/20",
   },
   {
     id: "nan-prae",
@@ -37,7 +35,6 @@ const SHIPS: Ship[] = [
     tags: ["canon", "friends to lovers", "sweet"],
     fansCount: 9210,
     status: "canon",
-    gradient: "from-rose-500/20 to-pink-600/20",
   },
   {
     id: "nanno-yuri",
@@ -48,7 +45,6 @@ const SHIPS: Ship[] = [
     tags: ["enemies to lovers", "dark", "intense"],
     fansCount: 31500,
     status: "near-canon",
-    gradient: "from-violet-500/20 to-indigo-600/20",
   },
   {
     id: "sand-june",
@@ -59,7 +55,6 @@ const SHIPS: Ship[] = [
     tags: ["complicated", "angst", "mutual pining"],
     fansCount: 7650,
     status: "near-canon",
-    gradient: "from-amber-500/20 to-orange-600/20",
   },
   {
     id: "mook-ying",
@@ -70,7 +65,6 @@ const SHIPS: Ship[] = [
     tags: ["canon", "roommates", "cozy"],
     fansCount: 5430,
     status: "canon",
-    gradient: "from-teal-500/20 to-cyan-600/20",
   },
   {
     id: "tar-kwan",
@@ -81,7 +75,6 @@ const SHIPS: Ship[] = [
     tags: ["classic", "first love", "coming of age"],
     fansCount: 18900,
     status: "canon",
-    gradient: "from-red-500/20 to-rose-600/20",
   },
   {
     id: "lily-rose",
@@ -92,7 +85,6 @@ const SHIPS: Ship[] = [
     tags: ["fan-ship", "iconic duo", "chemistry"],
     fansCount: 22100,
     status: "fan-ship",
-    gradient: "from-fuchsia-500/20 to-pink-600/20",
   },
   {
     id: "dao-ploy",
@@ -103,7 +95,6 @@ const SHIPS: Ship[] = [
     tags: ["fan-ship", "intense", "protect her"],
     fansCount: 8760,
     status: "fan-ship",
-    gradient: "from-blue-500/20 to-purple-600/20",
   },
   {
     id: "prae-fon",
@@ -114,7 +105,6 @@ const SHIPS: Ship[] = [
     tags: ["canon", "soulmates", "healing"],
     fansCount: 6340,
     status: "canon",
-    gradient: "from-emerald-500/20 to-teal-600/20",
   },
   {
     id: "aom-peak",
@@ -125,7 +115,6 @@ const SHIPS: Ship[] = [
     tags: ["near-canon", "slow burn", "tender"],
     fansCount: 4120,
     status: "near-canon",
-    gradient: "from-pink-400/20 to-red-500/20",
   },
   {
     id: "toon-ming",
@@ -136,7 +125,6 @@ const SHIPS: Ship[] = [
     tags: ["fan-ship", "sweet", "opposites attract"],
     fansCount: 3870,
     status: "fan-ship",
-    gradient: "from-purple-500/20 to-fuchsia-600/20",
   },
   {
     id: "nam-view",
@@ -147,7 +135,6 @@ const SHIPS: Ship[] = [
     tags: ["fan-ship", "soft", "aesthetic"],
     fansCount: 5210,
     status: "fan-ship",
-    gradient: "from-sky-500/20 to-blue-600/20",
   },
 ];
 
@@ -158,9 +145,9 @@ const STATUS_LABELS: Record<Ship["status"], string> = {
 };
 
 const STATUS_COLORS: Record<Ship["status"], string> = {
-  canon: "bg-green-500/20 text-green-300 border-green-500/30",
-  "near-canon": "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-  "fan-ship": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+  canon: "bg-primary/15 text-primary border-primary/30",
+  "near-canon": "bg-secondary/15 text-secondary border-secondary/30",
+  "fan-ship": "bg-white/8 text-white/60 border-white/15",
 };
 
 type FilterStatus = "all" | Ship["status"];
@@ -228,7 +215,7 @@ export default function ShipsPage() {
             {filtered.map((ship) => (
               <Link key={ship.id} href={`/search?q=${encodeURIComponent(ship.name)}`}>
                 <div
-                  className={`relative rounded-2xl border border-white/8 bg-gradient-to-br ${ship.gradient} p-5 cursor-pointer hover:border-white/20 transition-all group`}
+                  className="relative rounded-xl border border-border/60 bg-card/40 p-5 cursor-pointer hover:border-primary/30 hover:bg-card/60 transition-all group"
                 >
                   {/* Status badge */}
                   <span className={`absolute top-4 right-4 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${STATUS_COLORS[ship.status]}`}>

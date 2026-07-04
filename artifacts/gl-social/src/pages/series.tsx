@@ -14,8 +14,6 @@ interface Series {
   ships: string[];
   description: string;
   genre: string[];
-  accentColor: string;
-  banner: string;
 }
 
 const SERIES: Series[] = [
@@ -30,8 +28,6 @@ const SERIES: Series[] = [
     description:
       "Two paramedics with clashing personalities are forced to work together, gradually discovering a bond neither expected.",
     genre: ["Romance", "Drama", "Medical"],
-    accentColor: "#ec4899",
-    banner: "from-pink-600/30 to-rose-800/10",
   },
   {
     id: "hormones",
@@ -44,8 +40,6 @@ const SERIES: Series[] = [
     description:
       "The landmark Thai teen drama that tackled sexuality, identity, and first love with raw honesty — including a groundbreaking GL storyline.",
     genre: ["Drama", "Teen", "Coming of Age"],
-    accentColor: "#8b5cf6",
-    banner: "from-violet-600/30 to-purple-800/10",
   },
   {
     id: "girl-from-nowhere",
@@ -59,8 +53,6 @@ const SERIES: Series[] = [
     description:
       "A mysterious transfer student named Nanno exposes the dark secrets of every school she attends. Season 2 introduces Yuri — and the internet never recovered.",
     genre: ["Thriller", "Dark", "Supernatural"],
-    accentColor: "#6366f1",
-    banner: "from-indigo-600/30 to-slate-800/10",
   },
   {
     id: "wanshin-papatsorn",
@@ -74,8 +66,6 @@ const SERIES: Series[] = [
     description:
       "A quiet love story about healing, second chances, and two women finding their way back to each other across time and circumstance.",
     genre: ["Romance", "Drama", "Slice of Life"],
-    accentColor: "#10b981",
-    banner: "from-emerald-600/30 to-teal-800/10",
   },
   {
     id: "close-friend",
@@ -88,8 +78,6 @@ const SERIES: Series[] = [
     description:
       "An anthology of love stories celebrating friendship that blossoms into something more — including an intimate GL episode that became a fan favourite.",
     genre: ["Romance", "Anthology", "Friendship"],
-    accentColor: "#f59e0b",
-    banner: "from-amber-600/30 to-orange-800/10",
   },
   {
     id: "check-out",
@@ -102,8 +90,6 @@ const SERIES: Series[] = [
     description:
       "Rivals assigned as roommates, a messy apartment, and feelings neither girl planned for. Warm, funny, and unapologetically soft.",
     genre: ["Comedy", "Romance", "College"],
-    accentColor: "#06b6d4",
-    banner: "from-cyan-600/30 to-teal-800/10",
   },
   {
     id: "only-friends",
@@ -116,8 +102,6 @@ const SERIES: Series[] = [
     description:
       "A group of friends navigating polyamory, jealousy, and desire at a Bangkok resort — including a GL storyline that stood out for its honesty.",
     genre: ["Drama", "Romance", "Adult"],
-    accentColor: "#f97316",
-    banner: "from-orange-600/30 to-red-800/10",
   },
   {
     id: "my-ride",
@@ -130,8 +114,6 @@ const SERIES: Series[] = [
     description:
       "A spontaneous road trip turns into something neither girl can explain. Tender, quiet, and full of longing glances and unsaid words.",
     genre: ["Romance", "Road Trip", "Slow Burn"],
-    accentColor: "#ec4899",
-    banner: "from-pink-500/30 to-rose-700/10",
   },
   {
     id: "secret-crush-on-you",
@@ -144,8 +126,6 @@ const SERIES: Series[] = [
     description:
       "A musical theatre nerd pines for the cool, mysterious student across the dorm — a sweet GL romance full of colour, song, and heart.",
     genre: ["Musical", "Comedy", "Romance"],
-    accentColor: "#a855f7",
-    banner: "from-purple-600/30 to-fuchsia-800/10",
   },
   {
     id: "the-gifted-graduation",
@@ -158,8 +138,6 @@ const SERIES: Series[] = [
     description:
       "The final chapter of The Gifted universe — where gifted students face their last test, and a fan-beloved GL tension keeps viewers glued.",
     genre: ["Drama", "Thriller", "Sci-Fi"],
-    accentColor: "#3b82f6",
-    banner: "from-blue-600/30 to-indigo-800/10",
   },
 ];
 
@@ -227,9 +205,9 @@ export default function SeriesPage() {
           <div className="space-y-4">
             {filtered.map((series) => (
               <Link key={series.id} href={`/search?q=${encodeURIComponent(series.title)}`}>
-                <div className={`rounded-2xl border border-white/8 bg-gradient-to-br ${series.banner} overflow-hidden cursor-pointer hover:border-white/20 transition-all group`}>
+                <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden cursor-pointer hover:border-primary/30 hover:bg-card/60 transition-all group">
                   {/* Top bar with accent */}
-                  <div className="h-1 w-full" style={{ background: series.accentColor + "80" }} />
+                  <div className="h-px w-full hairline-gold opacity-50" />
 
                   <div className="p-5">
                     {/* Title + status */}
@@ -242,8 +220,8 @@ export default function SeriesPage() {
                       </div>
                       <span className={`flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
                         series.status === "completed"
-                          ? "bg-green-500/15 text-green-300 border-green-500/25"
-                          : "bg-blue-500/15 text-blue-300 border-blue-500/25"
+                          ? "bg-primary/15 text-primary border-primary/25"
+                          : "bg-secondary/15 text-secondary border-secondary/25"
                       }`}>
                         {series.status === "completed"
                           ? <CheckCircle2 className="w-3 h-3" />
@@ -275,8 +253,7 @@ export default function SeriesPage() {
                       {series.ships.map((ship) => (
                         <span
                           key={ship}
-                          className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
-                          style={{ background: series.accentColor + "25", color: series.accentColor, border: `1px solid ${series.accentColor}40` }}
+                          className="text-[11px] px-2.5 py-0.5 rounded-full font-medium bg-primary/12 text-primary border border-primary/25"
                         >
                           {ship}
                         </span>

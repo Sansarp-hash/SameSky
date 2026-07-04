@@ -50,10 +50,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const NavContent = () => (
     <div className="flex flex-col h-full bg-background border-r border-white/5 w-64 p-6 z-10 relative">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary shadow-[0_0_15px_rgba(255,105,180,0.5)]">
-          <Heart className="w-5 h-5 text-white fill-white" />
+        <div className="w-10 h-10 rounded-full flex items-center justify-center border border-primary/40 bg-primary/10">
+          <Heart className="w-4.5 h-4.5 text-primary fill-primary" />
         </div>
-        <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">SameSky</span>
+        <span className="font-display text-2xl tracking-wide text-foreground">SameSky</span>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -109,10 +109,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Header & Nav */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
-            <Heart className="w-4 h-4 text-white fill-white" />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center border border-primary/40 bg-primary/10">
+            <Heart className="w-3.5 h-3.5 text-primary fill-primary" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-white">SameSky</span>
+          <span className="font-display text-lg tracking-wide text-foreground">SameSky</span>
         </div>
         <Sheet>
           <SheetTrigger asChild>

@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
   <defs>
     <linearGradient id="skyGrad" x1="0" y1="200" x2="200" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#C084FC"/>
-      <stop offset="50%" stop-color="#818CF8"/>
-      <stop offset="100%" stop-color="#38BDF8"/>
+      <stop offset="0%" stop-color="#D8B06A"/>
+      <stop offset="50%" stop-color="#E3C489"/>
+      <stop offset="100%" stop-color="#C79A57"/>
     </linearGradient>
   </defs>
-  <rect width="200" height="200" rx="44" fill="#0D0D14"/>
+  <rect width="200" height="200" rx="44" fill="#0D0B08"/>
   <path d="M40 145 Q100 55 160 145" stroke="url(#skyGrad)" stroke-width="14" stroke-linecap="round" fill="none"/>
   <path d="M60 145 Q100 80 140 145" stroke="url(#skyGrad)" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.5"/>
-  <circle cx="70" cy="72" r="3" fill="#C084FC" opacity="0.8"/>
-  <circle cx="130" cy="65" r="2" fill="#38BDF8" opacity="0.8"/>
-  <circle cx="100" cy="52" r="2.5" fill="#818CF8" opacity="0.9"/>
+  <circle cx="70" cy="72" r="3" fill="#E3C489" opacity="0.85"/>
+  <circle cx="130" cy="65" r="2" fill="#C79A57" opacity="0.85"/>
+  <circle cx="100" cy="52" r="2.5" fill="#D8B06A" opacity="0.9"/>
 </svg>

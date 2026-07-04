@@ -51,7 +51,7 @@ The dedicated home for Thai GL (Girl's Love) series fans worldwide — discover 
 ## User preferences
 
 - No emojis in the UI
-- Classy, sleek dark aesthetic — X + TikTok + Twitch inspired
+- Classic and expensive aesthetic — editorial luxury: warm obsidian background, single champagne-gold accent, Playfair Display serif display type, generous negative space. Think Mandarin Oriental Bangkok, not Twitch. (Design tokens live in `artifacts/gl-social/src/index.css`.)
 - Main focus is Thai GL content community; Stars/drops are secondary/subtle
 
 ## Gotchas

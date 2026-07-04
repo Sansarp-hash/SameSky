@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600;700;800&display=swap');
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import '@clerk/themes/shadcn.css';
@@ -48,40 +48,43 @@
 }
 
 :root {
-  --background: 230 15% 6%;
-  --foreground: 210 40% 98%;
-  --border: 230 15% 15%;
-  
-  --card: 230 15% 9%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 230 15% 15%;
+  /* Editorial luxury — warm obsidian + champagne gold */
+  --background: 30 9% 5%;
+  --foreground: 40 22% 95%;
+  --border: 36 12% 16%;
 
-  --popover: 230 15% 6%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 230 15% 15%;
+  --card: 32 9% 8%;
+  --card-foreground: 40 22% 95%;
+  --card-border: 36 12% 16%;
 
-  --primary: 310 100% 65%;
-  --primary-foreground: 0 0% 100%;
+  --popover: 30 9% 6%;
+  --popover-foreground: 40 22% 95%;
+  --popover-border: 36 12% 16%;
 
-  --secondary: 200 100% 60%;
-  --secondary-foreground: 0 0% 100%;
+  /* Champagne gold */
+  --primary: 38 48% 62%;
+  --primary-foreground: 30 12% 8%;
 
-  --muted: 230 15% 15%;
-  --muted-foreground: 215 20% 65%;
+  /* Muted antique rose */
+  --secondary: 348 33% 60%;
+  --secondary-foreground: 30 12% 8%;
 
-  --accent: 310 100% 65%;
-  --accent-foreground: 0 0% 100%;
+  --muted: 34 10% 14%;
+  --muted-foreground: 38 12% 62%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
+  --accent: 38 48% 62%;
+  --accent-foreground: 30 12% 8%;
 
-  --input: 230 15% 15%;
-  --ring: 310 100% 65%;
-  
+  --destructive: 0 62% 52%;
+  --destructive-foreground: 40 22% 95%;
+
+  --input: 34 10% 14%;
+  --ring: 38 48% 62%;
+
   --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
+  --app-font-serif: 'Playfair Display', Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -91,5 +94,22 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--app-font-serif);
+  }
+  /* Refined uppercase eyebrow label */
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 0.6875rem;
+    font-weight: 500;
+  }
+  /* Thin gold hairline */
+  .hairline-gold {
+    background: linear-gradient(90deg, transparent, hsl(38 48% 62% / 0.6), transparent);
   }
 }

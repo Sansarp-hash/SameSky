@@ -1,8 +1,13 @@
 /**
  * Paystack API client for SameSky.
- * Currency: USD. All amounts in cents (1 USD = 100 cents).
+ *
+ * Prices are defined in USD cents (1 USD = 100 cents), but the Paystack account
+ * settles in GHS, so each charge is converted USD -> GHS at request time. Users
+ * always see USD; the actual charge is the GHS equivalent.
  * Docs: https://paystack.com/docs/api
  */
+
+import { getUsdToGhsRate, usdCentsToGhsPesewas, SETTLEMENT_CURRENCY } from "./currency";
 
 const PAYSTACK_BASE = "https://api.paystack.co";
 
@@ -55,9 +60,10 @@ export interface PaystackInitData {
 export interface PaystackVerifyData {
   status: "success" | "failed" | "abandoned";
   reference: string;
-  amount: number;       // in cents
-  currency: string;
+  amount: number;       // charged amount in subunits (GHS pesewas)
+  currency: string;     // "GHS"
   paid_at: string;
+  // metadata.usd_cents holds the original USD price; metadata.fx_rate the rate used.
   metadata: Record<string, string>;
   customer: { email: string };
 }
@@ -70,17 +76,24 @@ export interface PaystackVerifyData {
  */
 export async function initializeTransaction(params: {
   email: string;
-  amountCents: number;
+  amountCents: number; // USD cents
   reference?: string;
   callbackUrl: string;
   metadata: Record<string, string>;
 }): Promise<PaystackInitData> {
+  const rate = await getUsdToGhsRate();
+  const amountPesewas = usdCentsToGhsPesewas(params.amountCents, rate);
+
   return paystackFetch<PaystackInitData>("POST", "/transaction/initialize", {
     email: params.email,
-    amount: params.amountCents,
-    currency: "USD",
+    amount: amountPesewas,
+    currency: SETTLEMENT_CURRENCY,
     callback_url: params.callbackUrl,
-    metadata: params.metadata,
+    metadata: {
+      ...params.metadata,
+      usd_cents: String(params.amountCents),
+      fx_rate: String(rate),
+    },
     ...(params.reference ? { reference: params.reference } : {}),
   });
 }

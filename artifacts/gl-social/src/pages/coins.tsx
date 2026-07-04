@@ -109,7 +109,7 @@ export default function CoinsPage() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-white/30 text-center">Powered by Paystack — USD payments</p>
+        <p className="text-xs text-white/30 text-center">Powered by Paystack — priced in USD, charged in the GHS equivalent</p>
       </div>
 
       {/* Transaction history */}

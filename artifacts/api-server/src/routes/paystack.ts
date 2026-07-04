@@ -6,7 +6,9 @@
  *   2. POST /api/paystack/checkout/mystic-premium — init Mystic Premium purchase
  *   3. GET  /api/paystack/verify?reference=xxx  — verify + fulfill after redirect
  *
- * Currency: USD. Amounts in cents (1 USD = 100 cents).
+ * Pricing is defined in USD (cents). The Paystack account settles in GHS, so
+ * each charge is converted USD -> GHS at init time (see lib/currency.ts). The
+ * original USD amount is preserved in transaction metadata for record-keeping.
  */
 
 import { Router, type Request, type Response } from "express";
@@ -259,7 +261,12 @@ async function fulfillCoinPack(data: import("../lib/paystackClient").PaystackVer
       targetRef: data.reference,
     });
 
-    const priceUsd = data.amount / 100;
+    // data.amount is the GHS-charged amount; the original USD price lives in metadata.
+    const usdCents = parseInt(data.metadata.usd_cents ?? "");
+    if (!Number.isFinite(usdCents) || usdCents <= 0) {
+      throw new Error(`Missing/invalid usd_cents in metadata for reference ${data.reference}`);
+    }
+    const priceUsd = usdCents / 100;
     await tx.insert(coinPurchasesTable).values({
       userId,
       packSize: stars,

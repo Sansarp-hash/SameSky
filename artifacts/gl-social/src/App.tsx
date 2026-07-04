@@ -32,6 +32,7 @@ import MysticAstrologyPage from "@/pages/mystic/astrology";
 import ShipsPage from "@/pages/ships";
 import SeriesPage from "@/pages/series";
 import ShortsPage from "@/pages/shorts";
+import CodesPage from "@/pages/codes";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -188,6 +189,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/ships"><ProtectedRoute component={ShipsPage} /></Route>
             <Route path="/series"><ProtectedRoute component={SeriesPage} /></Route>
             <Route path="/shorts"><ProtectedRoute component={ShortsPage} /></Route>
+            <Route path="/codes"><ProtectedRoute component={CodesPage} /></Route>
 
             <Route path="/mystic"><ProtectedRoute component={MysticDashboardPage} /></Route>
             <Route path="/mystic/ships"><ProtectedRoute component={MysticShipsPage} /></Route>

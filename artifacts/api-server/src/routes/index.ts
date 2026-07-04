@@ -13,6 +13,7 @@ import mysticRouter from "./mystic";
 import paystackRouter from "./paystack";
 import currencyRouter from "./currency";
 import subscriptionsRouter from "./subscriptions";
+import codesRouter from "./codes";
 
 const router: IRouter = Router();
 
@@ -29,6 +30,7 @@ router.use("/storage", storageRouter);
 router.use("/mystic", mysticRouter);
 router.use("/currency", currencyRouter);
 router.use("/subscriptions", subscriptionsRouter);
+router.use("/codes", codesRouter);
 router.use(paystackRouter);
 
 export default router;

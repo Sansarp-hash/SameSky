@@ -18,7 +18,8 @@ import {
   Film,
   Play,
   Anchor,
-  Crown
+  Crown,
+  Ticket
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CurrencySwitcher } from "@/components/CurrencySwitcher";
@@ -38,6 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/series", label: "Canons", icon: Film },
     { href: "/shorts", label: "Shorts", icon: Play },
     { href: "/raffles", label: "Community", icon: Tv },
+    { href: "/codes", label: "Codes", icon: Ticket },
     { href: "/mystic", label: "Mystic Profile", icon: Sparkles },
     { href: "/profile", label: "Profile", icon: UserIcon },
     { href: "/coins", label: "Stars Wallet", icon: Star },

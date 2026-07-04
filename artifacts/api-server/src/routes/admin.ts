@@ -133,7 +133,7 @@ router.post("/users/:userId/coins", async (req: Request, res: Response) => {
     await db.insert(coinTransactionsTable).values({
       userId: user.id,
       amount: Math.abs(parsed.data.amount),
-      type: parsed.data.amount >= 0 ? "credit" : "debit",
+      type: parsed.data.amount >= 0 ? "earn" : "spend",
       description: parsed.data.description,
     });
 
@@ -169,7 +169,7 @@ router.get("/stats", async (req: Request, res: Response) => {
     const [coinsResult] = await db
       .select({ total: sql<number>`coalesce(sum(amount), 0)` })
       .from(coinTransactionsTable)
-      .where(eq(coinTransactionsTable.type, "credit"));
+      .where(eq(coinTransactionsTable.type, "earn"));
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

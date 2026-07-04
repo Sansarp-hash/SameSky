@@ -2,15 +2,18 @@ import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { contentRatingEnum } from "./content_entries";
 
 export const postsTable = pgTable("posts", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
   hashtags: text("hashtags").array().notNull().default([]),
+  contentRating: contentRatingEnum("content_rating").notNull().default("sfw"),
   authorId: integer("author_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   likeCount: integer("like_count").notNull().default(0),
   commentCount: integer("comment_count").notNull().default(0),
+  repostCount: integer("repost_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

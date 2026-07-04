@@ -78,7 +78,7 @@ function UsersManagement() {
   const addCoins = useAdminAddCoins();
 
   const handleBanToggle = (userId: number, currentStatus: boolean) => {
-    banUser.mutate({ userId, data: { banned: !currentStatus } }, {
+    banUser.mutate({ userId: String(userId), data: { banned: !currentStatus } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getAdminListUsersQueryKey({ search }) });
         toast({ title: `User ${!currentStatus ? 'banned' : 'unbanned'} successfully.` });
@@ -90,7 +90,7 @@ function UsersManagement() {
     const amount = parseInt(prompt("Enter amount to add:") || "0", 10);
     if (!amount || amount <= 0) return;
     
-    addCoins.mutate({ userId, data: { amount, description: "Admin granted coins" } }, {
+    addCoins.mutate({ userId: String(userId), data: { amount, description: "Admin granted coins" } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getAdminListUsersQueryKey({ search }) });
         toast({ title: `Added ${amount} coins successfully.` });

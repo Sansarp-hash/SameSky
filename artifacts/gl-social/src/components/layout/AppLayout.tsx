@@ -31,7 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/raffles", label: "Community", icon: Tv },
     { href: "/profile", label: "Profile", icon: UserIcon },
     { href: "/coins", label: "Stars Wallet", icon: Star },
-    { href: "/notifications", label: "Notifications", icon: Bell, badge: notifs?.notifications?.length },
+    { href: "/notifications", label: "Notifications", icon: Bell, badge: notifs?.length },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 

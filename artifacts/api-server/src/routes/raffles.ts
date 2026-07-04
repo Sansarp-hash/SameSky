@@ -155,7 +155,7 @@ router.post("/:raffleId/enter", async (req: Request, res: Response) => {
     await db.insert(coinTransactionsTable).values({
       userId: user.id,
       amount: raffle.entryCost,
-      type: "debit",
+      type: "raffle_entry",
       description: `Entered raffle: ${raffle.title}`,
     });
 

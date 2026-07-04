@@ -105,7 +105,7 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-1">
               <h1 className="text-2xl font-bold text-white tracking-tight flex items-center justify-center sm:justify-start gap-2">
                 {user.username}
-                {user.ageVerified && <CheckCircle2 className="w-4 h-4 text-primary" title="Verified" />}
+                {user.ageVerified && <CheckCircle2 className="w-4 h-4 text-primary" aria-label="Verified" />}
               </h1>
               {!isMe && meData && (
                 <Button

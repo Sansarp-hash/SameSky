@@ -40,7 +40,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const unreadCount = data?.notifications.filter(n => !n.isRead).length || 0;
+  const unreadCount = data?.filter(n => !n.isRead).length || 0;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -61,9 +61,9 @@ export default function NotificationsPage() {
           <div className="p-6 space-y-4">
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
           </div>
-        ) : data?.notifications.length ? (
+        ) : data?.length ? (
           <div className="divide-y divide-white/5">
-            {data.notifications.map(notif => (
+            {data.map(notif => (
               <div 
                 key={notif.id} 
                 className={`p-5 flex gap-4 transition-colors ${notif.isRead ? 'opacity-60' : 'bg-white/5 hover:bg-white/10 cursor-pointer'}`}

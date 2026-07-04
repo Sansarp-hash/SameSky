@@ -11,6 +11,11 @@ import AppLayout from "@/components/layout/AppLayout";
 import LandingPage from "@/pages/home";
 import FeedPage from "@/pages/feed";
 import AdminPage from "@/pages/admin";
+import RafflesPage from "@/pages/raffles";
+import ProfilePage from "@/pages/profile";
+import CoinsPage from "@/pages/coins";
+import NotificationsPage from "@/pages/notifications";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -157,6 +162,11 @@ function ClerkProviderWithRoutes() {
             
             <Route path="/feed"><ProtectedRoute component={FeedPage} /></Route>
             <Route path="/admin"><ProtectedRoute component={AdminPage} /></Route>
+            <Route path="/raffles"><ProtectedRoute component={RafflesPage} /></Route>
+            <Route path="/profile/:userId?"><ProtectedRoute component={ProfilePage} /></Route>
+            <Route path="/coins"><ProtectedRoute component={CoinsPage} /></Route>
+            <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
+            <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
             
             <Route><NotFound /></Route>
           </Switch>

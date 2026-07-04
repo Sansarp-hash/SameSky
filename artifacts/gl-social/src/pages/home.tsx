@@ -1,81 +1,92 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Ticket, Users, Coins } from "lucide-react";
+import { ArrowRight, Ticket, Users, Coins, Sparkles } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-white overflow-hidden relative">
-      {/* Noise overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')" }}></div>
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden relative text-white selection:bg-primary selection:text-primary-foreground">
+      {/* Sleek ambient background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-secondary/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
+        <div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] bg-accent/20 rounded-full blur-[100px] mix-blend-screen opacity-40" />
+      </div>
       
-      <header className="px-6 py-4 flex items-center justify-between border-b-4 border-black relative z-10 bg-white">
+      <header className="px-6 py-5 flex items-center justify-between relative z-10 border-b border-white/5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center rotate-3">
-            <span className="text-white font-black text-xl -rotate-3">GL</span>
+          <div className="w-10 h-10 bg-gradient-to-tr from-white/10 to-white/20 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+            <span className="text-white font-bold text-lg tracking-tighter">GL</span>
           </div>
-          <span className="text-2xl font-black uppercase tracking-tighter text-primary">Social</span>
+          <span className="text-xl font-semibold tracking-tight text-white">Social</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/sign-in">
-            <Button variant="ghost" className="hidden sm:flex font-bold uppercase tracking-widest border-2 border-black">Log In</Button>
+            <Button variant="ghost" className="hidden sm:flex font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">Log In</Button>
           </Link>
           <Link href="/sign-up">
-            <Button className="font-black uppercase tracking-widest border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all bg-primary">
-              Join Now
+            <Button className="rounded-full px-6 font-semibold shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all bg-white text-black hover:bg-white/90">
+              Join the Club
             </Button>
           </Link>
         </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="inline-block bg-secondary/10 border-2 border-secondary px-4 py-2 rounded-full mb-4">
-            <span className="text-secondary font-black uppercase tracking-widest text-sm">The Next Generation of Social</span>
+        <div className="max-w-4xl mx-auto space-y-8 mt-12 mb-24">
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-white/80 font-medium text-sm tracking-wide">The Premium Social Experience</span>
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-6 text-black drop-shadow-[4px_4px_0_rgba(200,0,255,1)]">
-            Post.<br/> Earn.<br/> <span className="text-primary">Win.</span>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[1.1] mb-6 text-white animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            Connect. <br className="md:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Earn.</span> <br className="md:hidden" />
+            Win.
           </h1>
           
-          <p className="text-xl md:text-2xl font-medium text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            GL Social isn't just a feed. It's an arena. Earn GL Coins for your activity and enter exclusive raffles for real prizes.
+          <p className="text-lg md:text-xl font-normal text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
+            A refined social network where your interactions carry real value. Earn GL Coins for your activity and gain access to exclusive high-stakes raffles.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
             <Link href="/sign-up">
-              <Button size="lg" className="w-full sm:w-auto h-16 px-10 text-xl font-black uppercase tracking-widest border-4 border-black shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-primary">
-                Start Playing <ArrowRight className="ml-2 w-6 h-6" />
+              <Button size="lg" className="w-full sm:w-auto h-14 rounded-full px-8 text-base font-semibold shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all bg-white text-black hover:bg-white/90">
+                Get Started <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 max-w-5xl mx-auto text-left w-full">
-          <div className="bg-white p-8 border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative group hover:-translate-y-2 transition-transform">
-            <div className="w-14 h-14 bg-secondary text-white rounded-lg flex items-center justify-center mb-6 border-2 border-black">
-              <Users className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black uppercase mb-3">Connect</h3>
-            <p className="text-gray-600 font-medium">Build your audience. Share your wins. The feed is where the energy lives.</p>
-          </div>
-          
-          <div className="bg-white p-8 border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative group hover:-translate-y-2 transition-transform">
-            <div className="w-14 h-14 bg-accent text-black rounded-lg flex items-center justify-center mb-6 border-2 border-black">
-              <Coins className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black uppercase mb-3">Earn</h3>
-            <p className="text-gray-600 font-medium">Every post, every like, every interaction adds GL Coins to your wallet.</p>
-          </div>
-
-          <div className="bg-white p-8 border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative group hover:-translate-y-2 transition-transform">
-            <div className="w-14 h-14 bg-primary text-white rounded-lg flex items-center justify-center mb-6 border-2 border-black">
-              <Ticket className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black uppercase mb-3">Win</h3>
-            <p className="text-gray-600 font-medium">Spend your coins on high-stakes raffles. Real prizes. Real winners.</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto text-left w-full animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500 pb-24">
+          <FeatureCard 
+            icon={<Users className="w-6 h-6" />}
+            title="The Feed"
+            description="Share your moments in a beautifully crafted environment designed for focus and quality."
+          />
+          <FeatureCard 
+            icon={<Coins className="w-6 h-6" />}
+            title="The Treasury"
+            description="Every post and interaction deposits GL Coins into your secure personal wallet."
+          />
+          <FeatureCard 
+            icon={<Ticket className="w-6 h-6" />}
+            title="The Vault"
+            description="Redeem your earned coins to enter exclusive raffles for premium physical and digital prizes."
+          />
         </div>
       </main>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+  return (
+    <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors group">
+      <div className="w-12 h-12 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 ease-out border border-white/5 shadow-inner">
+        {icon}
+      </div>
+      <h3 className="text-xl font-semibold mb-3 tracking-tight text-white">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }

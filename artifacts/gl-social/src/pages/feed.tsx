@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { useListPosts, getListPostsQueryKey, useCreatePost } from "@workspace/api-client-react";
+import { useListPosts, getListPostsQueryKey, useCreatePost, useLikePost, useListComments, getListCommentsQueryKey, useCreateComment, Post } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 export default function FeedPage() {
   const [content, setContent] = useState("");
+  const [activeCommentPost, setActiveCommentPost] = useState<number | null>(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   const { data, isLoading } = useListPosts(
     {}, 
@@ -16,6 +21,7 @@ export default function FeedPage() {
   );
   
   const createPost = useCreatePost();
+  const likePost = useLikePost();
 
   const handlePost = () => {
     if (!content.trim()) return;
@@ -26,31 +32,50 @@ export default function FeedPage() {
         onSuccess: () => {
           setContent("");
           queryClient.invalidateQueries({ queryKey: getListPostsQueryKey({}) });
+          toast({ title: "Post dropped successfully." });
+        },
+        onError: () => {
+          toast({ title: "Failed to create post", variant: "destructive" });
+        }
+      }
+    );
+  };
+
+  const handleLike = (postId: number) => {
+    likePost.mutate(
+      { postId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey({}) });
         }
       }
     );
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-4xl font-black uppercase tracking-tight drop-shadow-[2px_2px_0_rgba(0,0,0,1)] text-white" style={{ WebkitTextStroke: "1px black" }}>
-        The Feed
-      </h1>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight text-white mb-2">Feed</h1>
+        <p className="text-muted-foreground text-sm">See what's happening and earn coins.</p>
+      </header>
 
-      <div className="bg-white border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-4 rounded-xl">
+      <div className="bg-card/40 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-xl">
         <Textarea 
-          placeholder="What's the play today?" 
+          placeholder="What's on your mind?" 
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="min-h-[100px] border-2 border-black text-lg resize-none mb-4 font-medium"
+          className="min-h-[100px] bg-transparent border-none text-base resize-none mb-4 focus-visible:ring-0 placeholder:text-muted-foreground"
+          data-testid="input-post-content"
         />
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center border-t border-white/5 pt-4">
+          <div className="text-xs text-muted-foreground">Every post earns you GL Coins</div>
           <Button 
             onClick={handlePost} 
             disabled={createPost.isPending || !content.trim()}
-            className="font-black uppercase tracking-widest border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-primary text-white"
+            className="rounded-full px-6 font-medium shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all"
+            data-testid="button-submit-post"
           >
-            {createPost.isPending ? "Posting..." : "Drop It"}
+            {createPost.isPending ? "Posting..." : "Share"}
           </Button>
         </div>
       </div>
@@ -58,7 +83,7 @@ export default function FeedPage() {
       <div className="space-y-6">
         {isLoading ? (
           [1, 2, 3].map(i => (
-            <div key={i} className="bg-white border-4 border-black p-4 rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+            <div key={i} className="bg-card/20 border border-white/5 p-5 rounded-2xl backdrop-blur-sm">
               <div className="flex items-center gap-3 mb-4">
                 <Skeleton className="w-10 h-10 rounded-full" />
                 <Skeleton className="h-4 w-32" />
@@ -71,39 +96,141 @@ export default function FeedPage() {
             </div>
           ))
         ) : data?.posts.map((post) => (
-          <div key={post.id} className="bg-white border-4 border-black p-4 md:p-6 rounded-xl shadow-[8px_8px_0_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:shadow-[10px_10px_0_0_rgba(0,0,0,1)]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary/20 border-2 border-black rounded-full flex items-center justify-center font-black">
-                {post.author.username[0]?.toUpperCase()}
-              </div>
-              <div>
-                <div className="font-bold text-lg">{post.author.username}</div>
-                <div className="text-xs font-bold text-muted-foreground uppercase">{new Date(post.createdAt).toLocaleDateString()}</div>
-              </div>
-            </div>
-            
-            <p className="text-lg font-medium mb-6 whitespace-pre-wrap">{post.content}</p>
-            
-            <div className="flex items-center gap-6 pt-4 border-t-2 border-gray-100">
-              <button className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm hover:text-primary transition-colors group">
-                <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-primary text-primary' : 'group-hover:scale-110 transition-transform'}`} />
-                <span>{post.likeCount} Likes</span>
-              </button>
-              <button className="flex items-center gap-2 font-bold uppercase tracking-wider text-sm hover:text-secondary transition-colors group">
-                <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>{post.commentCount} Replies</span>
-              </button>
-            </div>
-          </div>
+          <PostCard 
+            key={post.id} 
+            post={post} 
+            onLike={() => handleLike(post.id)}
+            isLiking={likePost.isPending && likePost.variables?.postId === post.id}
+            isCommentOpen={activeCommentPost === post.id}
+            onToggleComment={() => setActiveCommentPost(activeCommentPost === post.id ? null : post.id)}
+          />
         ))}
 
         {!isLoading && data?.posts.length === 0 && (
-          <div className="text-center p-12 bg-white border-4 border-black border-dashed rounded-xl">
-            <h3 className="text-2xl font-black uppercase mb-2">Dead Quiet</h3>
-            <p className="font-medium text-muted-foreground">Be the first to drop some energy.</p>
+          <div className="text-center p-12 bg-card/20 border border-white/5 rounded-2xl backdrop-blur-sm">
+            <h3 className="text-xl font-semibold text-white mb-2">It's quiet here</h3>
+            <p className="text-muted-foreground text-sm">Be the first to share something.</p>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PostCard({ post, onLike, isLiking, isCommentOpen, onToggleComment }: { post: Post, onLike: () => void, isLiking: boolean, isCommentOpen: boolean, onToggleComment: () => void }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [commentContent, setCommentContent] = useState("");
+  
+  const { data: commentsData, isLoading: commentsLoading } = useListComments(post.id, {
+    query: {
+      enabled: isCommentOpen,
+      queryKey: getListCommentsQueryKey(post.id)
+    }
+  });
+
+  const createComment = useCreateComment();
+
+  const handleComment = () => {
+    if (!commentContent.trim()) return;
+    createComment.mutate({ postId: post.id, data: { content: commentContent } }, {
+      onSuccess: () => {
+        setCommentContent("");
+        queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey(post.id) });
+        queryClient.invalidateQueries({ queryKey: getListPostsQueryKey({}) });
+        toast({ title: "Reply added." });
+      }
+    });
+  };
+
+  return (
+    <div className="bg-card/40 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-lg transition-all hover:bg-card/50">
+      <div className="flex items-center gap-3 mb-4">
+        <Avatar className="w-10 h-10 border border-white/10">
+          <AvatarImage src={post.author.avatarUrl || undefined} />
+          <AvatarFallback className="bg-white/5 text-white">{post.author.username.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="font-semibold text-white text-sm" data-testid={`text-post-author-${post.id}`}>{post.author.username}</div>
+          <div className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</div>
+        </div>
+      </div>
+      
+      <p className="text-base text-foreground/90 mb-5 whitespace-pre-wrap leading-relaxed" data-testid={`text-post-content-${post.id}`}>{post.content}</p>
+      
+      <div className="flex items-center gap-6 pt-4 border-t border-white/5">
+        <button 
+          onClick={onLike}
+          disabled={isLiking}
+          className={`flex items-center gap-2 text-sm font-medium transition-colors ${post.isLiked ? 'text-primary' : 'text-muted-foreground hover:text-white'}`}
+          data-testid={`button-like-${post.id}`}
+        >
+          <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-primary' : ''}`} />
+          <span>{post.likeCount}</span>
+        </button>
+        <button 
+          onClick={onToggleComment}
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors"
+          data-testid={`button-comment-${post.id}`}
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span>{post.commentCount}</span>
+        </button>
+      </div>
+
+      {isCommentOpen && (
+        <div className="mt-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
+          <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto pr-2">
+            {commentsLoading ? (
+              <div className="space-y-3">
+                {[1,2].map(i => (
+                  <div key={i} className="flex gap-3">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : commentsData?.map(comment => (
+              <div key={comment.id} className="flex gap-3">
+                <Avatar className="w-8 h-8 border border-white/5">
+                  <AvatarFallback className="bg-white/5 text-xs text-white">{comment.author.username.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 bg-white/5 p-3 rounded-2xl rounded-tl-sm">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className="font-medium text-white text-xs">{comment.author.username}</span>
+                    <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(comment.createdAt))}</span>
+                  </div>
+                  <p className="text-sm text-foreground/80">{comment.content}</p>
+                </div>
+              </div>
+            ))}
+            {!commentsLoading && commentsData?.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No replies yet.</p>
+            )}
+          </div>
+          <div className="flex gap-2 relative">
+            <Textarea 
+              placeholder="Reply..."
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              className="min-h-[40px] h-[40px] py-2 px-4 rounded-full bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-primary/50 text-sm resize-none"
+              data-testid={`input-comment-${post.id}`}
+            />
+            <Button 
+              size="icon" 
+              className="rounded-full shrink-0" 
+              onClick={handleComment}
+              disabled={createComment.isPending || !commentContent.trim()}
+              data-testid={`button-submit-comment-${post.id}`}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

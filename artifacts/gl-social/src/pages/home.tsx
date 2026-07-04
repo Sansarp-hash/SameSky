@@ -96,6 +96,16 @@ export default function LandingPage() {
           />
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/5 px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/25">
+        <span>© 2026 SameSky. All rights reserved.</span>
+        <div className="flex items-center gap-5">
+          <Link href="/terms"><span className="hover:text-white/60 transition-colors cursor-pointer">Terms of Service</span></Link>
+          <Link href="/privacy"><span className="hover:text-white/60 transition-colors cursor-pointer">Privacy Policy</span></Link>
+          <a href="mailto:legal@samesky.app" className="hover:text-white/60 transition-colors">Contact</a>
+        </div>
+      </footer>
     </div>
   );
 }

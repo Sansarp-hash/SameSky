@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Component, type ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -18,6 +18,8 @@ import NotificationsPage from "@/pages/notifications";
 import SettingsPage from "@/pages/settings";
 import SearchPage from "@/pages/search";
 import NotFound from "@/pages/not-found";
+import TermsPage from "@/pages/terms";
+import PrivacyPage from "@/pages/privacy";
 import MysticDashboardPage from "@/pages/mystic/index";
 import MysticShipsPage from "@/pages/mystic/ships";
 import MysticActressesPage from "@/pages/mystic/actresses";
@@ -185,6 +187,8 @@ function ClerkProviderWithRoutes() {
             <Route path="/mystic/tarot"><ProtectedRoute component={MysticTarotPage} /></Route>
             <Route path="/mystic/astrology"><ProtectedRoute component={MysticAstrologyPage} /></Route>
             
+            <Route path="/terms" component={TermsPage} />
+            <Route path="/privacy" component={PrivacyPage} />
             <Route><NotFound /></Route>
           </Switch>
           <Toaster />
@@ -194,10 +198,39 @@ function ClerkProviderWithRoutes() {
   );
 }
 
+class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center px-4">
+          <p className="text-2xl font-bold text-white mb-2">Something went wrong</p>
+          <p className="text-white/50 text-sm mb-6">An unexpected error occurred. Please refresh the page.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-all"
+          >
+            Refresh
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
-    <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
-    </WouterRouter>
+    <AppErrorBoundary>
+      <WouterRouter base={basePath}>
+        <ClerkProviderWithRoutes />
+      </WouterRouter>
+    </AppErrorBoundary>
   );
 }

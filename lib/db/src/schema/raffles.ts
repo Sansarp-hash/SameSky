@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -17,12 +17,20 @@ export const rafflesTable = pgTable("raffles", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const raffleEntriesTable = pgTable("raffle_entries", {
-  id: serial("id").primaryKey(),
-  raffleId: integer("raffle_id").notNull().references(() => rafflesTable.id, { onDelete: "cascade" }),
-  userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const raffleEntriesTable = pgTable(
+  "raffle_entries",
+  {
+    id: serial("id").primaryKey(),
+    raffleId: integer("raffle_id").notNull().references(() => rafflesTable.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("raffle_entries_raffle_id_idx").on(t.raffleId),
+    index("raffle_entries_user_id_idx").on(t.userId),
+    uniqueIndex("raffle_entries_raffle_user_unique").on(t.raffleId, t.userId),
+  ],
+);
 
 export const insertRaffleSchema = createInsertSchema(rafflesTable).omit({
   id: true,

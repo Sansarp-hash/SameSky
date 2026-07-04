@@ -29,8 +29,8 @@ import { EMOTIONAL_STATUS_EMOJI, EMOTIONAL_STATUS_LABEL, type EmotionalStatus } 
 const STATUSES: EmotionalStatus[] = ["loved", "liked", "somehow", "really"];
 
 const seriesSchema = z.object({
-  seriesName: z.string().min(1, "Series name is required"),
-  emotionalStatus: z.enum(["loved", "liked", "somehow", "really"]),
+  title: z.string().min(1, "Title is required"),
+  status: z.enum(["loved", "liked", "somehow", "really"]),
 });
 
 export default function Series() {
@@ -41,7 +41,7 @@ export default function Series() {
 
   const form = useForm<z.infer<typeof seriesSchema>>({
     resolver: zodResolver(seriesSchema),
-    defaultValues: { seriesName: "", emotionalStatus: "liked" },
+    defaultValues: { title: "", status: "liked" },
   });
 
   const onSubmit = async (data: z.infer<typeof seriesSchema>) => {
@@ -53,7 +53,7 @@ export default function Series() {
   if (isLoading || !series) return <Skeleton className="h-64" />;
 
   const grouped = STATUSES.reduce<Record<string, typeof series>>((acc, s) => {
-    acc[s] = series.filter((item) => item.emotionalStatus === s);
+    acc[s] = series.filter((item) => item.status === s);
     return acc;
   }, {} as Record<string, typeof series>);
 
@@ -61,8 +61,8 @@ export default function Series() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-accent-foreground flex items-center gap-3">
-            <Tv className="w-8 h-8 text-primary" /> Series Tracker
+          <h1 className="text-3xl font-serif text-primary flex items-center gap-3">
+            <Tv className="w-8 h-8" /> Series Tracker
           </h1>
           <p className="text-muted-foreground mt-1">Track every GL series you've journeyed through, emotionally.</p>
         </div>
@@ -80,14 +80,14 @@ export default function Series() {
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label>Series Name</Label>
-                <Input {...form.register("seriesName")} placeholder="e.g. The Untamed (GL ver)" className="bg-background/50" />
+                <Label>Series Title</Label>
+                <Input {...form.register("title")} placeholder="e.g. Between Us" className="bg-background/50" />
               </div>
               <div className="space-y-2">
                 <Label>Emotional Status</Label>
                 <Select
                   defaultValue="liked"
-                  onValueChange={(v) => form.setValue("emotionalStatus", v as EmotionalStatus)}
+                  onValueChange={(v) => form.setValue("status", v as EmotionalStatus)}
                 >
                   <SelectTrigger className="bg-background/50">
                     <SelectValue />
@@ -130,9 +130,9 @@ export default function Series() {
                   <Card key={s.id} className="bg-card/50 backdrop-blur border-primary/10 hover:border-primary/30 transition-all group">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{EMOTIONAL_STATUS_EMOJI[s.emotionalStatus as EmotionalStatus]}</span>
+                        <span className="text-2xl">{EMOTIONAL_STATUS_EMOJI[s.status as EmotionalStatus]}</span>
                         <div>
-                          <h3 className="font-semibold">{s.seriesName}</h3>
+                          <h3 className="font-semibold">{s.title}</h3>
                           <p className="text-xs text-muted-foreground">Added {new Date(s.createdAt).toLocaleDateString()}</p>
                         </div>
                       </div>

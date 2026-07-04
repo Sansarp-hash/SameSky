@@ -24,11 +24,17 @@ export const fmEmotionalStatusEnum = pgEnum("fm_emotional_status", [
 ]);
 
 export const fmFlagTypeEnum = pgEnum("fm_flag_type", [
-  "red_flag",
-  "yellow_flag",
-  "green_flag",
-  "green_forest",
-  "red_magma",
+  "red",
+  "yellow",
+  "green",
+  "forest",
+  "magma",
+]);
+
+export const fmReadingTypeEnum = pgEnum("fm_reading_type", [
+  "daily",
+  "love",
+  "career",
 ]);
 
 // ─── Users ─────────────────────────────────────────────────────────────────
@@ -81,10 +87,8 @@ export const fmSeriesTable = pgTable("fm_series", {
   userId: integer("user_id")
     .notNull()
     .references(() => fmUsersTable.id, { onDelete: "cascade" }),
-  seriesName: text("series_name").notNull(),
-  emotionalStatus: fmEmotionalStatusEnum("emotional_status")
-    .notNull()
-    .default("liked"),
+  title: text("title").notNull(),
+  status: fmEmotionalStatusEnum("status").notNull().default("liked"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -94,14 +98,12 @@ export const fmSeriesTable = pgTable("fm_series", {
 
 export const fmCharactersTable = pgTable("fm_characters", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => fmUsersTable.id, { onDelete: "cascade" }),
   seriesId: integer("series_id")
     .notNull()
     .references(() => fmSeriesTable.id, { onDelete: "cascade" }),
-  characterName: text("character_name").notNull(),
+  name: text("name").notNull(),
   flagType: fmFlagTypeEnum("flag_type").notNull(),
+  notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -115,6 +117,7 @@ export const fmTarotReadingsTable = pgTable("fm_tarot_readings", {
     .notNull()
     .references(() => fmUsersTable.id, { onDelete: "cascade" }),
   cards: jsonb("cards").notNull().default([]),
+  readingType: fmReadingTypeEnum("reading_type").notNull().default("daily"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -129,6 +132,8 @@ export const fmAstrologyProfilesTable = pgTable("fm_astrology_profiles", {
     .unique()
     .references(() => fmUsersTable.id, { onDelete: "cascade" }),
   birthDate: date("birth_date").notNull(),
+  birthTime: text("birth_time"),
+  birthLocation: text("birth_location"),
   zodiacSign: text("zodiac_sign").notNull(),
   element: text("element").notNull(),
   rulingPlanet: text("ruling_planet").notNull(),

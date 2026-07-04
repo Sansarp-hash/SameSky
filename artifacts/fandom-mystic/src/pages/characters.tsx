@@ -4,6 +4,7 @@ import { useCharacters, useCreateCharacter, useDeleteCharacter, useSeries } from
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,16 +27,17 @@ import {
 } from "@/components/ui/select";
 import { FLAG_EMOJI, FLAG_LABEL, type FlagType } from "@/lib/api";
 
-const FLAG_TYPES: FlagType[] = ["red_flag", "yellow_flag", "green_flag", "green_forest", "red_magma"];
+const FLAG_TYPES: FlagType[] = ["red", "yellow", "green", "forest", "magma"];
 
 const characterSchema = z.object({
-  characterName: z.string().min(1, "Name is required"),
-  flagType: z.enum(["red_flag", "yellow_flag", "green_flag", "green_forest", "red_magma"]),
+  name: z.string().min(1, "Name is required"),
+  flagType: z.enum(["red", "yellow", "green", "forest", "magma"]),
+  notes: z.string().optional(),
 });
 
 export default function Characters() {
   const [, params] = useRoute("/series/:id/characters");
-  const seriesId = params ? parseInt(params.id) : undefined;
+  const seriesId = params ? parseInt(params.id) : 0;
 
   const { data: seriesList } = useSeries();
   const { data: characters, isLoading } = useCharacters(seriesId);
@@ -47,12 +49,17 @@ export default function Characters() {
 
   const form = useForm<z.infer<typeof characterSchema>>({
     resolver: zodResolver(characterSchema),
-    defaultValues: { characterName: "", flagType: "green_flag" },
+    defaultValues: { name: "", flagType: "green", notes: "" },
   });
 
   const onSubmit = async (data: z.infer<typeof characterSchema>) => {
     if (!seriesId) return;
-    await createCharacter.mutateAsync({ seriesId, ...data });
+    await createCharacter.mutateAsync({
+      seriesId,
+      name: data.name,
+      flagType: data.flagType,
+      notes: data.notes || undefined,
+    });
     setOpen(false);
     form.reset();
   };
@@ -74,7 +81,7 @@ export default function Characters() {
         </Button>
         <div>
           <h1 className="text-2xl font-serif text-primary">
-            {seriesItem ? seriesItem.seriesName : "Series"} — Characters
+            {seriesItem ? seriesItem.title : "Series"} — Characters
           </h1>
           <p className="text-sm text-muted-foreground">Flag each character based on their energy</p>
         </div>
@@ -95,12 +102,12 @@ export default function Characters() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label>Character Name</Label>
-                <Input {...form.register("characterName")} placeholder="e.g. Fah" className="bg-background/50" />
+                <Input {...form.register("name")} placeholder="e.g. Fah" className="bg-background/50" />
               </div>
               <div className="space-y-2">
                 <Label>Flag</Label>
                 <Select
-                  defaultValue="green_flag"
+                  defaultValue="green"
                   onValueChange={(v) => form.setValue("flagType", v as FlagType)}
                 >
                   <SelectTrigger className="bg-background/50">
@@ -114,6 +121,15 @@ export default function Characters() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                <Textarea
+                  {...form.register("notes")}
+                  placeholder="What makes this character stand out?"
+                  className="bg-background/50 resize-none"
+                  rows={3}
+                />
               </div>
               <Button type="submit" disabled={createCharacter.isPending} className="w-full">
                 Flag Character
@@ -142,15 +158,20 @@ export default function Characters() {
               <div className="grid gap-2">
                 {grouped[flag].map((c) => (
                   <Card key={c.id} className="bg-card/50 backdrop-blur border-primary/10 hover:border-primary/30 transition-all">
-                    <CardContent className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{FLAG_EMOJI[c.flagType as FlagType]}</span>
-                        <span className="font-medium">{c.characterName}</span>
+                    <CardContent className="p-3 flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <span className="text-xl mt-0.5 shrink-0">{FLAG_EMOJI[c.flagType as FlagType]}</span>
+                        <div className="min-w-0">
+                          <p className="font-medium">{c.name}</p>
+                          {c.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{c.notes}</p>
+                          )}
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-8 h-8"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-8 h-8 shrink-0"
                         onClick={() => deleteCharacter.mutate(c.id)}
                         disabled={deleteCharacter.isPending}
                       >

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Star, RefreshCw, Sparkles } from "lucide-react";
+import { Star, RefreshCw, Sparkles, MapPin, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,13 +24,17 @@ const ZODIAC_ICON: Record<string, string> = {
 export default function Astrology() {
   const { data: profile, isLoading } = useAstrologyProfile();
   const generate = useGenerateAstrology();
-  const [birthDate, setBirthDate] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ birthDate: "", birthTime: "", birthLocation: "" });
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!birthDate) return;
-    await generate.mutateAsync({ birthDate });
+    if (!form.birthDate) return;
+    await generate.mutateAsync({
+      birthDate: form.birthDate,
+      birthTime: form.birthTime || undefined,
+      birthLocation: form.birthLocation || undefined,
+    });
     setShowForm(false);
   };
 
@@ -69,26 +73,52 @@ export default function Astrology() {
         <Card className="bg-card/60 backdrop-blur border-secondary/20">
           <CardHeader>
             <CardTitle className="font-serif text-xl text-secondary">
-              {profile ? "Update Your Birthdate" : "Generate Your Cosmic Profile"}
+              {profile ? "Update Your Birth Details" : "Generate Your Cosmic Profile"}
             </CardTitle>
-            <CardDescription>Enter your birth date to receive your personalized astrology reading</CardDescription>
+            <CardDescription>Enter your details for a personalized astrology reading</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-3 items-end">
-              <div className="space-y-2 flex-1">
-                <Label>Birth Date</Label>
-                <Input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="bg-background/50"
-                  max={new Date().toISOString().slice(0, 10)}
-                  required
-                />
+            <form onSubmit={handleGenerate} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Birth Date <span className="text-destructive">*</span></Label>
+                  <Input
+                    type="date"
+                    value={form.birthDate}
+                    onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))}
+                    className="bg-background/50"
+                    max={new Date().toISOString().slice(0, 10)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Birth Time <span className="text-muted-foreground text-xs">(optional)</span>
+                  </Label>
+                  <Input
+                    type="time"
+                    value={form.birthTime}
+                    onChange={(e) => setForm((f) => ({ ...f, birthTime: e.target.value }))}
+                    className="bg-background/50"
+                    placeholder="HH:MM"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Birth Location <span className="text-muted-foreground text-xs">(optional)</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    value={form.birthLocation}
+                    onChange={(e) => setForm((f) => ({ ...f, birthLocation: e.target.value }))}
+                    className="bg-background/50"
+                    placeholder="e.g. Bangkok, Thailand"
+                  />
+                </div>
               </div>
               <Button
                 type="submit"
-                disabled={generate.isPending || !birthDate}
+                disabled={generate.isPending || !form.birthDate}
                 className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-serif tracking-widest"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -110,7 +140,19 @@ export default function Astrology() {
                   <div className="w-24 h-24 rounded-full bg-secondary/15 border border-secondary/30 flex items-center justify-center">
                     <span className="text-5xl">{ZODIAC_ICON[profile.zodiacSign] ?? "✨"}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{new Date(profile.birthDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(profile.birthDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  </p>
+                  {profile.birthTime && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {profile.birthTime}
+                    </p>
+                  )}
+                  {profile.birthLocation && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> {profile.birthLocation}
+                    </p>
+                  )}
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-3xl font-serif text-secondary mb-1">{profile.zodiacSign}</h2>

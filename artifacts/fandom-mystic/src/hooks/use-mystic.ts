@@ -8,6 +8,7 @@ import {
   astrologyApi,
   dashboardApi,
   profileApi,
+  type ReadingType,
 } from "@/lib/api";
 
 export function useShips() {
@@ -86,6 +87,17 @@ export function useCreateSeries() {
   });
 }
 
+export function useUpdateSeries() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof seriesApi.update>[1] }) =>
+      seriesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["series"] });
+    },
+  });
+}
+
 export function useDeleteSeries() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -97,10 +109,11 @@ export function useDeleteSeries() {
   });
 }
 
-export function useCharacters(seriesId?: number) {
+export function useCharacters(seriesId: number) {
   return useQuery({
     queryKey: ["characters", seriesId],
     queryFn: () => charactersApi.list(seriesId),
+    enabled: !!seriesId,
   });
 }
 
@@ -109,8 +122,19 @@ export function useCreateCharacter() {
   return useMutation({
     mutationFn: charactersApi.create,
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["characters"] });
+      queryClient.invalidateQueries({ queryKey: ["characters", variables.seriesId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });
+    },
+  });
+}
+
+export function useUpdateCharacter() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Parameters<typeof charactersApi.update>[1] }) =>
+      charactersApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["characters"] });
     },
   });
 }
@@ -136,7 +160,7 @@ export function useTarotHistory() {
 export function useDrawTarot() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: tarotApi.draw,
+    mutationFn: (readingType?: ReadingType) => tarotApi.draw(readingType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tarot", "history"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });

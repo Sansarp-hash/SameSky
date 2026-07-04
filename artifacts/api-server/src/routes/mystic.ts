@@ -135,17 +135,6 @@ router.post("/ships", authenticate, async (req: any, res) => {
   return res.status(201).json(ship);
 });
 
-router.patch("/ships/:id", authenticate, async (req: any, res) => {
-  const id = parseInt(req.params.id);
-  const [existing] = await db.select().from(fmShipsTable).where(and(eq(fmShipsTable.id, id), eq(fmShipsTable.userId, req.fmUserId))).limit(1);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  const updates: Partial<typeof fmShipsTable.$inferInsert> = {};
-  if (req.body.shipName !== undefined) updates.shipName = req.body.shipName;
-  if (req.body.rankPosition !== undefined) updates.rankPosition = req.body.rankPosition;
-  const [ship] = await db.update(fmShipsTable).set(updates).where(eq(fmShipsTable.id, id)).returning();
-  return res.json(ship);
-});
-
 router.delete("/ships/:id", authenticate, async (req: any, res) => {
   const id = parseInt(req.params.id);
   await db.delete(fmShipsTable).where(and(eq(fmShipsTable.id, id), eq(fmShipsTable.userId, req.fmUserId)));
@@ -176,17 +165,6 @@ router.post("/actresses", authenticate, async (req: any, res) => {
   return res.status(201).json(actress);
 });
 
-router.patch("/actresses/:id", authenticate, async (req: any, res) => {
-  const id = parseInt(req.params.id);
-  const [existing] = await db.select().from(fmActressesTable).where(and(eq(fmActressesTable.id, id), eq(fmActressesTable.userId, req.fmUserId))).limit(1);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  const updates: Partial<typeof fmActressesTable.$inferInsert> = {};
-  if (req.body.name !== undefined) updates.name = req.body.name;
-  if (req.body.rankPosition !== undefined) updates.rankPosition = req.body.rankPosition;
-  const [actress] = await db.update(fmActressesTable).set(updates).where(eq(fmActressesTable.id, id)).returning();
-  return res.json(actress);
-});
-
 router.delete("/actresses/:id", authenticate, async (req: any, res) => {
   const id = parseInt(req.params.id);
   await db.delete(fmActressesTable).where(and(eq(fmActressesTable.id, id), eq(fmActressesTable.userId, req.fmUserId)));
@@ -201,19 +179,19 @@ router.get("/series", authenticate, async (req: any, res) => {
 });
 
 router.post("/series", authenticate, async (req: any, res) => {
-  const { seriesName, emotionalStatus } = req.body ?? {};
-  if (!seriesName || !emotionalStatus) return res.status(400).json({ error: "seriesName and emotionalStatus are required" });
-  const [series] = await db.insert(fmSeriesTable).values({ userId: req.fmUserId, seriesName, emotionalStatus }).returning();
+  const { title, status } = req.body ?? {};
+  if (!title || !status) return res.status(400).json({ error: "title and status are required" });
+  const [series] = await db.insert(fmSeriesTable).values({ userId: req.fmUserId, title, status }).returning();
   return res.status(201).json(series);
 });
 
-router.patch("/series/:id", authenticate, async (req: any, res) => {
+router.put("/series/:id", authenticate, async (req: any, res) => {
   const id = parseInt(req.params.id);
   const [existing] = await db.select().from(fmSeriesTable).where(and(eq(fmSeriesTable.id, id), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
   if (!existing) return res.status(404).json({ error: "Not found" });
   const updates: Partial<typeof fmSeriesTable.$inferInsert> = {};
-  if (req.body.seriesName !== undefined) updates.seriesName = req.body.seriesName;
-  if (req.body.emotionalStatus !== undefined) updates.emotionalStatus = req.body.emotionalStatus;
+  if (req.body.title !== undefined) updates.title = req.body.title;
+  if (req.body.status !== undefined) updates.status = req.body.status;
   const [series] = await db.update(fmSeriesTable).set(updates).where(eq(fmSeriesTable.id, id)).returning();
   return res.json(series);
 });
@@ -226,37 +204,53 @@ router.delete("/series/:id", authenticate, async (req: any, res) => {
 
 // ─── Characters ──────────────────────────────────────────────────────────────
 
-router.get("/characters", authenticate, async (req: any, res) => {
-  const seriesId = req.query.seriesId ? parseInt(req.query.seriesId as string) : undefined;
-  const conditions = [eq(fmCharactersTable.userId, req.fmUserId)];
-  if (seriesId) conditions.push(eq(fmCharactersTable.seriesId, seriesId));
-  const characters = await db.select().from(fmCharactersTable).where(and(...conditions)).orderBy(fmCharactersTable.createdAt);
+router.get("/characters/:seriesId", authenticate, async (req: any, res) => {
+  const seriesId = parseInt(req.params.seriesId);
+  // Verify series belongs to this user
+  const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
+    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+  if (!series) return res.status(404).json({ error: "Series not found" });
+  const characters = await db.select().from(fmCharactersTable)
+    .where(eq(fmCharactersTable.seriesId, seriesId))
+    .orderBy(fmCharactersTable.createdAt);
   return res.json(characters);
 });
 
 router.post("/characters", authenticate, async (req: any, res) => {
-  const { seriesId, characterName, flagType } = req.body ?? {};
-  if (!seriesId || !characterName || !flagType) return res.status(400).json({ error: "seriesId, characterName, and flagType are required" });
-  const [series] = await db.select().from(fmSeriesTable).where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+  const { seriesId, name, flagType, notes } = req.body ?? {};
+  if (!seriesId || !name || !flagType) return res.status(400).json({ error: "seriesId, name, and flagType are required" });
+  // Verify series belongs to this user
+  const [series] = await db.select().from(fmSeriesTable)
+    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
   if (!series) return res.status(404).json({ error: "Series not found" });
-  const [character] = await db.insert(fmCharactersTable).values({ userId: req.fmUserId, seriesId, characterName, flagType }).returning();
+  const [character] = await db.insert(fmCharactersTable).values({ seriesId, name, flagType, notes: notes ?? null }).returning();
   return res.status(201).json(character);
 });
 
-router.patch("/characters/:id", authenticate, async (req: any, res) => {
+router.put("/characters/:id", authenticate, async (req: any, res) => {
   const id = parseInt(req.params.id);
-  const [existing] = await db.select().from(fmCharactersTable).where(and(eq(fmCharactersTable.id, id), eq(fmCharactersTable.userId, req.fmUserId))).limit(1);
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  // Fetch character and verify ownership via series
+  const [char] = await db.select().from(fmCharactersTable).where(eq(fmCharactersTable.id, id)).limit(1);
+  if (!char) return res.status(404).json({ error: "Not found" });
+  const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
+    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+  if (!series) return res.status(403).json({ error: "Forbidden" });
   const updates: Partial<typeof fmCharactersTable.$inferInsert> = {};
-  if (req.body.characterName !== undefined) updates.characterName = req.body.characterName;
+  if (req.body.name !== undefined) updates.name = req.body.name;
   if (req.body.flagType !== undefined) updates.flagType = req.body.flagType;
+  if (req.body.notes !== undefined) updates.notes = req.body.notes;
   const [character] = await db.update(fmCharactersTable).set(updates).where(eq(fmCharactersTable.id, id)).returning();
   return res.json(character);
 });
 
 router.delete("/characters/:id", authenticate, async (req: any, res) => {
   const id = parseInt(req.params.id);
-  await db.delete(fmCharactersTable).where(and(eq(fmCharactersTable.id, id), eq(fmCharactersTable.userId, req.fmUserId)));
+  const [char] = await db.select().from(fmCharactersTable).where(eq(fmCharactersTable.id, id)).limit(1);
+  if (!char) return res.status(204).end();
+  const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
+    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+  if (!series) return res.status(403).json({ error: "Forbidden" });
+  await db.delete(fmCharactersTable).where(eq(fmCharactersTable.id, id));
   return res.status(204).end();
 });
 
@@ -298,17 +292,25 @@ const TAROT_DECK = [
   { name: "Six of Swords", suit: "Swords", meaning: "Transition, change, rite of passage, releasing baggage" },
 ];
 
-router.post("/tarot/draw", authenticate, async (req: any, res) => {
+// GET /tarot/draw — creates a new reading if one hasn't been done for this type today
+router.get("/tarot/draw", authenticate, async (req: any, res) => {
+  const readingType = (req.query.type as string) || "daily";
+  const validTypes = ["daily", "love", "career"];
+  const type = validTypes.includes(readingType) ? readingType : "daily";
+
   const today = new Date().toISOString().slice(0, 10);
-  const existing = await db
+  const allReadings = await db
     .select()
     .from(fmTarotReadingsTable)
     .where(eq(fmTarotReadingsTable.userId, req.fmUserId))
     .orderBy(fmTarotReadingsTable.createdAt);
-  const todayReading = existing.find((r) => r.createdAt.toISOString().slice(0, 10) === today);
-  if (todayReading) {
-    return res.json(todayReading);
-  }
+
+  // Only one reading per type per day
+  const existing = allReadings.find(
+    (r) => r.readingType === type && r.createdAt.toISOString().slice(0, 10) === today
+  );
+  if (existing) return res.json(existing);
+
   const shuffled = [...TAROT_DECK].sort(() => Math.random() - 0.5);
   const numCards = Math.floor(Math.random() * 3) + 1;
   const cards = shuffled.slice(0, numCards).map((c) => ({
@@ -317,7 +319,7 @@ router.post("/tarot/draw", authenticate, async (req: any, res) => {
   }));
   const [reading] = await db
     .insert(fmTarotReadingsTable)
-    .values({ userId: req.fmUserId, cards })
+    .values({ userId: req.fmUserId, cards, readingType: type as any })
     .returning();
   return res.status(201).json(reading);
 });
@@ -374,7 +376,7 @@ router.get("/astrology/profile", authenticate, async (req: any, res) => {
 });
 
 router.post("/astrology/generate", authenticate, async (req: any, res) => {
-  const { birthDate } = req.body ?? {};
+  const { birthDate, birthTime, birthLocation } = req.body ?? {};
   if (!birthDate) return res.status(400).json({ error: "birthDate is required (YYYY-MM-DD)" });
   const z = getZodiac(birthDate);
   const traits = ELEMENT_TRAITS[z.element] ?? [];
@@ -383,17 +385,23 @@ router.post("/astrology/generate", authenticate, async (req: any, res) => {
     compatibility: ["Libra", "Aquarius", "Gemini"].filter((s) => s !== z.sign).slice(0, 2),
     strengths: traits.slice(0, 3),
     description: `As a ${z.sign}, you are ruled by ${z.rulingPlanet} and belong to the ${z.element} element. You embody ${traits.slice(0, 3).join(", ")} qualities that make you unique in your fandom journey.`,
-    glCompatibility: z.element === "Water" ? "Very high — your emotional depth mirrors the heart of GL storytelling." :
-      z.element === "Fire" ? "High — your passion fuels deep connections with GL narratives." :
-      z.element === "Air" ? "Moderate — your analytical mind appreciates GL character development." :
-      "High — your loyalty makes you a dedicated GL fan.",
+    glCompatibility:
+      z.element === "Water" ? "Very high — your emotional depth mirrors the heart of GL storytelling." :
+      z.element === "Fire"  ? "High — your passion fuels deep connections with GL narratives." :
+      z.element === "Air"   ? "Moderate — your analytical mind appreciates GL character development." :
+                              "High — your loyalty makes you a dedicated GL fan.",
   };
   const existing = await db.select().from(fmAstrologyProfilesTable).where(eq(fmAstrologyProfilesTable.userId, req.fmUserId)).limit(1);
   let profile;
   if (existing.length > 0) {
-    [profile] = await db.update(fmAstrologyProfilesTable).set({ birthDate, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData }).where(eq(fmAstrologyProfilesTable.userId, req.fmUserId)).returning();
+    [profile] = await db.update(fmAstrologyProfilesTable)
+      .set({ birthDate, birthTime: birthTime ?? null, birthLocation: birthLocation ?? null, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData })
+      .where(eq(fmAstrologyProfilesTable.userId, req.fmUserId))
+      .returning();
   } else {
-    [profile] = await db.insert(fmAstrologyProfilesTable).values({ userId: req.fmUserId, birthDate, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData }).returning();
+    [profile] = await db.insert(fmAstrologyProfilesTable)
+      .values({ userId: req.fmUserId, birthDate, birthTime: birthTime ?? null, birthLocation: birthLocation ?? null, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData })
+      .returning();
   }
   return res.status(201).json(profile);
 });
@@ -407,7 +415,7 @@ router.get("/dashboard/summary", authenticate, async (req: any, res) => {
   const [shipsCount] = await db.select({ value: count() }).from(fmShipsTable).where(eq(fmShipsTable.userId, req.fmUserId));
   const [actressesCount] = await db.select({ value: count() }).from(fmActressesTable).where(eq(fmActressesTable.userId, req.fmUserId));
   const [seriesCount] = await db.select({ value: count() }).from(fmSeriesTable).where(eq(fmSeriesTable.userId, req.fmUserId));
-  const [charactersCount] = await db.select({ value: count() }).from(fmCharactersTable).where(eq(fmCharactersTable.userId, req.fmUserId));
+  const [charactersCount] = await db.select({ value: count() }).from(fmCharactersTable);
   const today = new Date().toISOString().slice(0, 10);
   const readings = await db.select().from(fmTarotReadingsTable).where(eq(fmTarotReadingsTable.userId, req.fmUserId));
   const todayTarotDone = readings.some((r) => r.createdAt.toISOString().slice(0, 10) === today);

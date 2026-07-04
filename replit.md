@@ -1,45 +1,66 @@
-# [Project name]
+# GL Social
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A social platform where users earn GL Coins and enter raffles for prizes — community-driven, fast, energetic.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080, served at `/api`)
+- `pnpm --filter @workspace/gl-social run dev` — run the frontend (port 20268, served at `/`)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (auto-provisioned)
+- Required env: `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` — auto-provisioned via Clerk setup
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
+- Frontend: React + Vite + Wouter + TanStack Query + Tailwind v4 + shadcn/ui
+- API: Express 5 + Drizzle ORM + PostgreSQL
+- Auth: Clerk (Replit-managed) — email/password + OAuth
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for all API contracts
+- `lib/db/src/schema/` — Drizzle table definitions (users, posts, coins, raffles, notifications)
+- `artifacts/api-server/src/routes/` — Express route handlers per feature
+- `artifacts/gl-social/src/` — React frontend (pages in `src/pages/`)
+- `lib/api-client-react/src/generated/` — generated React Query hooks (do not edit)
+- `lib/api-zod/src/generated/` — generated Zod schemas for server validation (do not edit)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Clerk proxy pattern**: Clerk auth runs through the Express server proxy middleware for production SSO compatibility. Cookie-based auth — no Bearer tokens on the web client.
+- **JIT user provisioning**: Users are created in the local DB on first API call via `getOrCreateUser()`. Clerk ID is the foreign key linking Clerk identity to the local user record.
+- **OpenAPI-first**: All API contracts are defined in `openapi.yaml` before implementation. Never hand-write types that codegen produces.
+- **Role system**: `free`, `premium`, `admin` — stored in DB. Admin role gates all `/admin` routes server-side AND client-side.
+- **GL Coins**: Simple integer balance on the user record; all changes go through `coin_transactions` table for audit trail.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Social feed**: Post text + images, like and comment on posts, basic hashtag support
+- **GL Coins**: Virtual currency; admins can add coins to users manually; spent on raffle entries
+- **Raffles**: Time-boxed entry windows, coin-cost to enter, admin draws random winner
+- **Notifications**: In-app alerts for raffle events, likes, comments, coin credits
+- **Admin panel**: User management (ban/unban, add coins), raffle creation + winner draw, platform stats dashboard
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- No emojis in the UI
+- Bold, energetic neo-brutalist aesthetic
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run `pnpm --filter @workspace/api-spec run codegen` after every change to `openapi.yaml`
+- Run `pnpm --filter @workspace/db run push` after every schema change in `lib/db/src/schema/`
+- Clerk dev keys show a console warning — this is expected and harmless in development
+- The first signed-in user with a `free` role needs to be manually promoted to `admin` via direct DB update: `UPDATE users SET role = 'admin' WHERE clerk_id = '<your-clerk-id>';`
 
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See the `clerk-auth` skill for auth setup and customization

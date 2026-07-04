@@ -3,20 +3,32 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GL Social API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User profile operations
+  - name: posts
+    description: Social feed operations
+  - name: coins
+    description: GL Coin operations
+  - name: raffles
+    description: Raffle operations
+  - name: notifications
+    description: Notification operations
+  - name: admin
+    description: Admin operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +36,850 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Users ───────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get public user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+
+  /users/me/verify-age:
+    post:
+      operationId: verifyAge
+      tags: [users]
+      summary: Submit age verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgeVerification"
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # ─── Posts ───────────────────────────────────────────────────────────────────
+  /posts:
+    get:
+      operationId: listPosts
+      tags: [posts]
+      summary: List posts (social feed)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: hashtag
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Posts list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostPage"
+
+    post:
+      operationId: createPost
+      tags: [posts]
+      summary: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/{postId}:
+    get:
+      operationId: getPost
+      tags: [posts]
+      summary: Get a single post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "404":
+          description: Not found
+
+    delete:
+      operationId: deletePost
+      tags: [posts]
+      summary: Delete a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /posts/{postId}/like:
+    post:
+      operationId: likePost
+      tags: [posts]
+      summary: Toggle like on a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Like status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeStatus"
+
+  /posts/{postId}/comments:
+    get:
+      operationId: listComments
+      tags: [posts]
+      summary: List comments on a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+
+    post:
+      operationId: createComment
+      tags: [posts]
+      summary: Add a comment to a post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  # ─── Coins ───────────────────────────────────────────────────────────────────
+  /coins/balance:
+    get:
+      operationId: getCoinBalance
+      tags: [coins]
+      summary: Get current user coin balance
+      responses:
+        "200":
+          description: Coin balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinBalance"
+
+  /coins/transactions:
+    get:
+      operationId: listCoinTransactions
+      tags: [coins]
+      summary: Get current user coin transaction history
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Transaction history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoinTransaction"
+
+  # ─── Raffles ─────────────────────────────────────────────────────────────────
+  /raffles:
+    get:
+      operationId: listRaffles
+      tags: [raffles]
+      summary: List raffles
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+            enum: [active, upcoming, ended, null]
+      responses:
+        "200":
+          description: Raffles list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Raffle"
+
+    post:
+      operationId: createRaffle
+      tags: [raffles]
+      summary: Create a raffle (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RaffleInput"
+      responses:
+        "201":
+          description: Created raffle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Raffle"
+
+  /raffles/{raffleId}:
+    get:
+      operationId: getRaffle
+      tags: [raffles]
+      summary: Get a raffle by ID
+      parameters:
+        - name: raffleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Raffle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Raffle"
+        "404":
+          description: Not found
+
+  /raffles/{raffleId}/enter:
+    post:
+      operationId: enterRaffle
+      tags: [raffles]
+      summary: Enter a raffle using GL Coins
+      parameters:
+        - name: raffleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entry confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RaffleEntry"
+        "400":
+          description: Insufficient coins or already entered
+
+  /raffles/{raffleId}/draw:
+    post:
+      operationId: drawRaffleWinner
+      tags: [raffles]
+      summary: Draw raffle winner (admin only)
+      parameters:
+        - name: raffleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Winner info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RaffleWinner"
+
+  /raffles/{raffleId}/entries:
+    get:
+      operationId: listRaffleEntries
+      tags: [raffles]
+      summary: List entries for a raffle (admin only)
+      parameters:
+        - name: raffleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entries list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RaffleEntry"
+
+  # ─── Notifications ───────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: Get current user notifications
+      parameters:
+        - name: unreadOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "204":
+          description: Done
+
+  # ─── Admin ───────────────────────────────────────────────────────────────────
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin only)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPage"
+
+  /admin/users/{userId}/ban:
+    patch:
+      operationId: adminBanUser
+      tags: [admin]
+      summary: Ban or unban a user (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BanAction"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/users/{userId}/coins:
+    post:
+      operationId: adminAddCoins
+      tags: [admin]
+      summary: Add GL Coins to a user (admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoinAdjustment"
+      responses:
+        "200":
+          description: Updated balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinBalance"
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Get platform stats (admin only)
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    User:
+      type: object
+      required: [id, clerkId, username, role, coinBalance, isVerified, isBanned, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [free, premium, admin]
+        coinBalance:
+          type: integer
+        isVerified:
+          type: boolean
+        isBanned:
+          type: boolean
+        ageVerified:
+          type: boolean
+        createdAt:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        country:
+          type: ["string", "null"]
+
+    UserPage:
+      type: object
+      required: [users, total, page, limit]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AgeVerification:
+      type: object
+      required: [birthYear]
+      properties:
+        birthYear:
+          type: integer
+
+    Post:
+      type: object
+      required: [id, content, authorId, author, likeCount, commentCount, isLiked, createdAt]
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        hashtags:
+          type: array
+          items:
+            type: string
+        authorId:
+          type: integer
+        author:
+          $ref: "#/components/schemas/User"
+        likeCount:
+          type: integer
+        commentCount:
+          type: integer
+        isLiked:
+          type: boolean
+        createdAt:
+          type: string
+
+    PostInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        imageUrl:
+          type: ["string", "null"]
+
+    PostPage:
+      type: object
+      required: [posts, total, page, limit]
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    LikeStatus:
+      type: object
+      required: [liked, likeCount]
+      properties:
+        liked:
+          type: boolean
+        likeCount:
+          type: integer
+
+    Comment:
+      type: object
+      required: [id, postId, content, authorId, author, createdAt]
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        content:
+          type: string
+        authorId:
+          type: integer
+        author:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 1000
+
+    CoinBalance:
+      type: object
+      required: [userId, balance]
+      properties:
+        userId:
+          type: integer
+        balance:
+          type: integer
+
+    CoinTransaction:
+      type: object
+      required: [id, userId, amount, type, description, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: integer
+        type:
+          type: string
+          enum: [credit, debit]
+        description:
+          type: string
+        createdAt:
+          type: string
+
+    Raffle:
+      type: object
+      required: [id, title, description, entryCost, startTime, endTime, status, entryCount, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        prize:
+          type: ["string", "null"]
+        entryCost:
+          type: integer
+        startTime:
+          type: string
+        endTime:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, active, ended]
+        entryCount:
+          type: integer
+        winnerId:
+          type: ["integer", "null"]
+        winner:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        hasEntered:
+          type: boolean
+        createdAt:
+          type: string
+
+    RaffleInput:
+      type: object
+      required: [title, description, entryCost, startTime, endTime]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        prize:
+          type: ["string", "null"]
+        entryCost:
+          type: integer
+          minimum: 1
+        startTime:
+          type: string
+        endTime:
+          type: string
+
+    RaffleEntry:
+      type: object
+      required: [id, raffleId, userId, user, createdAt]
+      properties:
+        id:
+          type: integer
+        raffleId:
+          type: integer
+        userId:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+
+    RaffleWinner:
+      type: object
+      required: [raffleId, winner]
+      properties:
+        raffleId:
+          type: integer
+        winner:
+          $ref: "#/components/schemas/User"
+
+    Notification:
+      type: object
+      required: [id, userId, type, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [raffle_started, raffle_ended, raffle_won, post_liked, post_commented, coin_received, system]
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        referenceId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    BanAction:
+      type: object
+      required: [banned]
+      properties:
+        banned:
+          type: boolean
+        reason:
+          type: ["string", "null"]
+
+    CoinAdjustment:
+      type: object
+      required: [amount, description]
+      properties:
+        amount:
+          type: integer
+        description:
+          type: string
+
+    PlatformStats:
+      type: object
+      required: [totalUsers, totalPosts, totalRaffles, activeRaffles, totalCoinsDistributed]
+      properties:
+        totalUsers:
+          type: integer
+        totalPosts:
+          type: integer
+        totalRaffles:
+          type: integer
+        activeRaffles:
+          type: integer
+        totalCoinsDistributed:
+          type: integer
+        newUsersToday:
+          type: integer
+        newPostsToday:
+          type: integer

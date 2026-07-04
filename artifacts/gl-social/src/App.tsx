@@ -18,6 +18,13 @@ import NotificationsPage from "@/pages/notifications";
 import SettingsPage from "@/pages/settings";
 import SearchPage from "@/pages/search";
 import NotFound from "@/pages/not-found";
+import MysticDashboardPage from "@/pages/mystic/index";
+import MysticShipsPage from "@/pages/mystic/ships";
+import MysticActressesPage from "@/pages/mystic/actresses";
+import MysticSeriesPage from "@/pages/mystic/series";
+import MysticCharactersPage from "@/pages/mystic/characters";
+import MysticTarotPage from "@/pages/mystic/tarot";
+import MysticAstrologyPage from "@/pages/mystic/astrology";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -169,6 +176,14 @@ function ClerkProviderWithRoutes() {
             <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
             <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
             <Route path="/search"><ProtectedRoute component={SearchPage} /></Route>
+
+            <Route path="/mystic"><ProtectedRoute component={MysticDashboardPage} /></Route>
+            <Route path="/mystic/ships"><ProtectedRoute component={MysticShipsPage} /></Route>
+            <Route path="/mystic/actresses"><ProtectedRoute component={MysticActressesPage} /></Route>
+            <Route path="/mystic/series"><ProtectedRoute component={MysticSeriesPage} /></Route>
+            <Route path="/mystic/series/:id/characters"><ProtectedRoute component={MysticCharactersPage} /></Route>
+            <Route path="/mystic/tarot"><ProtectedRoute component={MysticTarotPage} /></Route>
+            <Route path="/mystic/astrology"><ProtectedRoute component={MysticAstrologyPage} /></Route>
             
             <Route><NotFound /></Route>
           </Switch>

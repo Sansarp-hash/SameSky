@@ -37,7 +37,7 @@ export const fmReadingTypeEnum = pgEnum("fm_reading_type", [
   "career",
 ]);
 
-// ─── Users ─────────────────────────────────────────────────────────────────
+// ─── Users (bridged to Clerk via clerk_id) ──────────────────────────────────
 
 export const fmUsersTable = pgTable("fm_users", {
   id: serial("id").primaryKey(),
@@ -47,6 +47,7 @@ export const fmUsersTable = pgTable("fm_users", {
   subscriptionTier: fmSubscriptionTierEnum("subscription_tier")
     .notNull()
     .default("free"),
+  clerkId: text("clerk_id").unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

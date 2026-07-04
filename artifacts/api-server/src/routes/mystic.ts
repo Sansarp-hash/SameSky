@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import {
   fmUsersTable,
@@ -10,184 +11,183 @@ import {
   fmAstrologyProfilesTable,
 } from "@workspace/db";
 import { eq, and, count } from "drizzle-orm";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 const router = Router();
 
-const JWT_SECRET = process.env.SESSION_SECRET ?? "mystic-dev-secret";
 const FREE_LIMIT = 3;
 const PREMIUM_LIMIT = 30;
 
-// ─── Auth middleware ────────────────────────────────────────────────────────
+// ─── Clerk → fm_users bridge (JIT provisioning) ────────────────────────────
 
-interface JwtPayload {
-  userId: number;
+async function getOrCreateFmUser(clerkId: string) {
+  const [existing] = await db
+    .select()
+    .from(fmUsersTable)
+    .where(eq(fmUsersTable.clerkId, clerkId))
+    .limit(1);
+  if (existing) return existing;
+  const [created] = await db
+    .insert(fmUsersTable)
+    .values({
+      clerkId,
+      username: `sky_${clerkId.slice(-10)}`,
+      email: `${clerkId}@samesky.internal`,
+      passwordHash: "clerk_managed",
+    })
+    .returning();
+  return created;
 }
 
-function authenticate(req: any, res: any, next: any) {
-  const auth = req.headers.authorization as string | undefined;
-  if (!auth?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized" });
+// ─── Auth helper ────────────────────────────────────────────────────────────
+
+async function resolveFmUser(req: any, res: any): Promise<typeof fmUsersTable.$inferSelect | null> {
+  const { userId: clerkId } = getAuth(req);
+  if (!clerkId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return null;
   }
-  const token = auth.slice(7);
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    req.fmUserId = payload.userId;
-    next();
-  } catch {
-    return res.status(401).json({ error: "Invalid token" });
-  }
+  return getOrCreateFmUser(clerkId);
 }
 
 function formatUser(u: typeof fmUsersTable.$inferSelect) {
   return {
     id: u.id,
-    username: u.username,
-    email: u.email,
     subscriptionTier: u.subscriptionTier,
     createdAt: u.createdAt,
   };
 }
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
+// ─── Profile ─────────────────────────────────────────────────────────────────
 
-router.post("/auth/register", async (req, res) => {
-  const { username, email, password } = req.body ?? {};
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: "username, email, and password are required" });
-  }
-  const existing = await db
-    .select()
-    .from(fmUsersTable)
-    .where(eq(fmUsersTable.email, email))
-    .limit(1);
-  if (existing.length > 0) {
-    return res.status(409).json({ error: "Email already registered" });
-  }
-  const passwordHash = await bcrypt.hash(password, 10);
+router.get("/me", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
+  return res.json(formatUser(fmUser));
+});
+
+router.post("/profile/upgrade", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const [user] = await db
-    .insert(fmUsersTable)
-    .values({ username, email, passwordHash })
+    .update(fmUsersTable)
+    .set({ subscriptionTier: "premium" })
+    .where(eq(fmUsersTable.id, fmUser.id))
     .returning();
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
-  return res.status(201).json({ token, user: formatUser(user) });
-});
-
-router.post("/auth/login", async (req, res) => {
-  const { email, password } = req.body ?? {};
-  if (!email || !password) {
-    return res.status(400).json({ error: "email and password are required" });
-  }
-  const [user] = await db
-    .select()
-    .from(fmUsersTable)
-    .where(eq(fmUsersTable.email, email))
-    .limit(1);
-  if (!user) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-  const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
-  return res.json({ token, user: formatUser(user) });
-});
-
-router.get("/auth/me", authenticate, async (req: any, res) => {
-  const [user] = await db
-    .select()
-    .from(fmUsersTable)
-    .where(eq(fmUsersTable.id, req.fmUserId))
-    .limit(1);
-  if (!user) return res.status(404).json({ error: "User not found" });
   return res.json(formatUser(user));
 });
 
 // ─── Ships ──────────────────────────────────────────────────────────────────
 
-router.get("/ships", authenticate, async (req: any, res) => {
+router.get("/ships", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const ships = await db
     .select()
     .from(fmShipsTable)
-    .where(eq(fmShipsTable.userId, req.fmUserId))
+    .where(eq(fmShipsTable.userId, fmUser.id))
     .orderBy(fmShipsTable.rankPosition);
   return res.json(ships);
 });
 
-router.post("/ships", authenticate, async (req: any, res) => {
+router.post("/ships", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const { shipName, rankPosition } = req.body ?? {};
   if (!shipName) return res.status(400).json({ error: "shipName is required" });
-  const [user] = await db.select().from(fmUsersTable).where(eq(fmUsersTable.id, req.fmUserId)).limit(1);
-  const limit = user?.subscriptionTier === "premium" ? PREMIUM_LIMIT : FREE_LIMIT;
+  const limit = fmUser.subscriptionTier === "premium" ? PREMIUM_LIMIT : FREE_LIMIT;
   const [{ value: existingCount }] = await db
     .select({ value: count() })
     .from(fmShipsTable)
-    .where(eq(fmShipsTable.userId, req.fmUserId));
+    .where(eq(fmShipsTable.userId, fmUser.id));
   if (Number(existingCount) >= limit) {
     return res.status(403).json({ error: `Limit of ${limit} ships reached. Upgrade to premium for more.` });
   }
   const [ship] = await db
     .insert(fmShipsTable)
-    .values({ userId: req.fmUserId, shipName, rankPosition: rankPosition ?? 1 })
+    .values({ userId: fmUser.id, shipName, rankPosition: rankPosition ?? 1 })
     .returning();
   return res.status(201).json(ship);
 });
 
-router.delete("/ships/:id", authenticate, async (req: any, res) => {
+router.delete("/ships/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
-  await db.delete(fmShipsTable).where(and(eq(fmShipsTable.id, id), eq(fmShipsTable.userId, req.fmUserId)));
+  await db.delete(fmShipsTable).where(and(eq(fmShipsTable.id, id), eq(fmShipsTable.userId, fmUser.id)));
   return res.status(204).end();
 });
 
 // ─── Actresses ──────────────────────────────────────────────────────────────
 
-router.get("/actresses", authenticate, async (req: any, res) => {
+router.get("/actresses", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const actresses = await db
     .select()
     .from(fmActressesTable)
-    .where(eq(fmActressesTable.userId, req.fmUserId))
+    .where(eq(fmActressesTable.userId, fmUser.id))
     .orderBy(fmActressesTable.rankPosition);
   return res.json(actresses);
 });
 
-router.post("/actresses", authenticate, async (req: any, res) => {
+router.post("/actresses", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const { name, rankPosition } = req.body ?? {};
   if (!name) return res.status(400).json({ error: "name is required" });
-  const [user] = await db.select().from(fmUsersTable).where(eq(fmUsersTable.id, req.fmUserId)).limit(1);
-  const limit = user?.subscriptionTier === "premium" ? PREMIUM_LIMIT : FREE_LIMIT;
-  const [{ value: existingCount }] = await db.select({ value: count() }).from(fmActressesTable).where(eq(fmActressesTable.userId, req.fmUserId));
+  const limit = fmUser.subscriptionTier === "premium" ? PREMIUM_LIMIT : FREE_LIMIT;
+  const [{ value: existingCount }] = await db
+    .select({ value: count() })
+    .from(fmActressesTable)
+    .where(eq(fmActressesTable.userId, fmUser.id));
   if (Number(existingCount) >= limit) {
     return res.status(403).json({ error: `Limit of ${limit} actresses reached. Upgrade to premium for more.` });
   }
-  const [actress] = await db.insert(fmActressesTable).values({ userId: req.fmUserId, name, rankPosition: rankPosition ?? 1 }).returning();
+  const [actress] = await db
+    .insert(fmActressesTable)
+    .values({ userId: fmUser.id, name, rankPosition: rankPosition ?? 1 })
+    .returning();
   return res.status(201).json(actress);
 });
 
-router.delete("/actresses/:id", authenticate, async (req: any, res) => {
+router.delete("/actresses/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
-  await db.delete(fmActressesTable).where(and(eq(fmActressesTable.id, id), eq(fmActressesTable.userId, req.fmUserId)));
+  await db.delete(fmActressesTable).where(and(eq(fmActressesTable.id, id), eq(fmActressesTable.userId, fmUser.id)));
   return res.status(204).end();
 });
 
 // ─── Series ─────────────────────────────────────────────────────────────────
 
-router.get("/series", authenticate, async (req: any, res) => {
-  const series = await db.select().from(fmSeriesTable).where(eq(fmSeriesTable.userId, req.fmUserId)).orderBy(fmSeriesTable.createdAt);
+router.get("/series", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
+  const series = await db
+    .select()
+    .from(fmSeriesTable)
+    .where(eq(fmSeriesTable.userId, fmUser.id))
+    .orderBy(fmSeriesTable.createdAt);
   return res.json(series);
 });
 
-router.post("/series", authenticate, async (req: any, res) => {
+router.post("/series", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const { title, status } = req.body ?? {};
   if (!title || !status) return res.status(400).json({ error: "title and status are required" });
-  const [series] = await db.insert(fmSeriesTable).values({ userId: req.fmUserId, title, status }).returning();
+  const [series] = await db
+    .insert(fmSeriesTable)
+    .values({ userId: fmUser.id, title, status })
+    .returning();
   return res.status(201).json(series);
 });
 
-router.put("/series/:id", authenticate, async (req: any, res) => {
+router.put("/series/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
-  const [existing] = await db.select().from(fmSeriesTable).where(and(eq(fmSeriesTable.id, id), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+  const [existing] = await db.select().from(fmSeriesTable).where(and(eq(fmSeriesTable.id, id), eq(fmSeriesTable.userId, fmUser.id))).limit(1);
   if (!existing) return res.status(404).json({ error: "Not found" });
   const updates: Partial<typeof fmSeriesTable.$inferInsert> = {};
   if (req.body.title !== undefined) updates.title = req.body.title;
@@ -196,19 +196,22 @@ router.put("/series/:id", authenticate, async (req: any, res) => {
   return res.json(series);
 });
 
-router.delete("/series/:id", authenticate, async (req: any, res) => {
+router.delete("/series/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
-  await db.delete(fmSeriesTable).where(and(eq(fmSeriesTable.id, id), eq(fmSeriesTable.userId, req.fmUserId)));
+  await db.delete(fmSeriesTable).where(and(eq(fmSeriesTable.id, id), eq(fmSeriesTable.userId, fmUser.id)));
   return res.status(204).end();
 });
 
 // ─── Characters ──────────────────────────────────────────────────────────────
 
-router.get("/characters/:seriesId", authenticate, async (req: any, res) => {
+router.get("/characters/:seriesId", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const seriesId = parseInt(req.params.seriesId);
-  // Verify series belongs to this user
   const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
-    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, fmUser.id))).limit(1);
   if (!series) return res.status(404).json({ error: "Series not found" });
   const characters = await db.select().from(fmCharactersTable)
     .where(eq(fmCharactersTable.seriesId, seriesId))
@@ -216,24 +219,26 @@ router.get("/characters/:seriesId", authenticate, async (req: any, res) => {
   return res.json(characters);
 });
 
-router.post("/characters", authenticate, async (req: any, res) => {
+router.post("/characters", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const { seriesId, name, flagType, notes } = req.body ?? {};
   if (!seriesId || !name || !flagType) return res.status(400).json({ error: "seriesId, name, and flagType are required" });
-  // Verify series belongs to this user
   const [series] = await db.select().from(fmSeriesTable)
-    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+    .where(and(eq(fmSeriesTable.id, seriesId), eq(fmSeriesTable.userId, fmUser.id))).limit(1);
   if (!series) return res.status(404).json({ error: "Series not found" });
   const [character] = await db.insert(fmCharactersTable).values({ seriesId, name, flagType, notes: notes ?? null }).returning();
   return res.status(201).json(character);
 });
 
-router.put("/characters/:id", authenticate, async (req: any, res) => {
+router.put("/characters/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
-  // Fetch character and verify ownership via series
   const [char] = await db.select().from(fmCharactersTable).where(eq(fmCharactersTable.id, id)).limit(1);
   if (!char) return res.status(404).json({ error: "Not found" });
   const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
-    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, fmUser.id))).limit(1);
   if (!series) return res.status(403).json({ error: "Forbidden" });
   const updates: Partial<typeof fmCharactersTable.$inferInsert> = {};
   if (req.body.name !== undefined) updates.name = req.body.name;
@@ -243,12 +248,14 @@ router.put("/characters/:id", authenticate, async (req: any, res) => {
   return res.json(character);
 });
 
-router.delete("/characters/:id", authenticate, async (req: any, res) => {
+router.delete("/characters/:id", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const id = parseInt(req.params.id);
   const [char] = await db.select().from(fmCharactersTable).where(eq(fmCharactersTable.id, id)).limit(1);
   if (!char) return res.status(204).end();
   const [series] = await db.select({ id: fmSeriesTable.id }).from(fmSeriesTable)
-    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, req.fmUserId))).limit(1);
+    .where(and(eq(fmSeriesTable.id, char.seriesId), eq(fmSeriesTable.userId, fmUser.id))).limit(1);
   if (!series) return res.status(403).json({ error: "Forbidden" });
   await db.delete(fmCharactersTable).where(eq(fmCharactersTable.id, id));
   return res.status(204).end();
@@ -292,43 +299,33 @@ const TAROT_DECK = [
   { name: "Six of Swords", suit: "Swords", meaning: "Transition, change, rite of passage, releasing baggage" },
 ];
 
-// GET /tarot/draw — creates a new reading if one hasn't been done for this type today
-router.get("/tarot/draw", authenticate, async (req: any, res) => {
+router.get("/tarot/draw", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const readingType = (req.query.type as string) || "daily";
   const validTypes = ["daily", "love", "career"];
   const type = validTypes.includes(readingType) ? readingType : "daily";
-
   const today = new Date().toISOString().slice(0, 10);
-  const allReadings = await db
-    .select()
-    .from(fmTarotReadingsTable)
-    .where(eq(fmTarotReadingsTable.userId, req.fmUserId))
-    .orderBy(fmTarotReadingsTable.createdAt);
-
-  // Only one reading per type per day
+  const allReadings = await db.select().from(fmTarotReadingsTable)
+    .where(eq(fmTarotReadingsTable.userId, fmUser.id));
   const existing = allReadings.find(
     (r) => r.readingType === type && r.createdAt.toISOString().slice(0, 10) === today
   );
   if (existing) return res.json(existing);
-
   const shuffled = [...TAROT_DECK].sort(() => Math.random() - 0.5);
   const numCards = Math.floor(Math.random() * 3) + 1;
-  const cards = shuffled.slice(0, numCards).map((c) => ({
-    ...c,
-    isReversed: Math.random() > 0.7,
-  }));
-  const [reading] = await db
-    .insert(fmTarotReadingsTable)
-    .values({ userId: req.fmUserId, cards, readingType: type as any })
+  const cards = shuffled.slice(0, numCards).map((c) => ({ ...c, isReversed: Math.random() > 0.7 }));
+  const [reading] = await db.insert(fmTarotReadingsTable)
+    .values({ userId: fmUser.id, cards, readingType: type as any })
     .returning();
   return res.status(201).json(reading);
 });
 
-router.get("/tarot/history", authenticate, async (req: any, res) => {
-  const history = await db
-    .select()
-    .from(fmTarotReadingsTable)
-    .where(eq(fmTarotReadingsTable.userId, req.fmUserId))
+router.get("/tarot/history", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
+  const history = await db.select().from(fmTarotReadingsTable)
+    .where(eq(fmTarotReadingsTable.userId, fmUser.id))
     .orderBy(fmTarotReadingsTable.createdAt);
   return res.json(history.reverse());
 });
@@ -370,12 +367,17 @@ function getZodiac(birthDate: string) {
   return ZODIAC[0];
 }
 
-router.get("/astrology/profile", authenticate, async (req: any, res) => {
-  const [profile] = await db.select().from(fmAstrologyProfilesTable).where(eq(fmAstrologyProfilesTable.userId, req.fmUserId)).limit(1);
+router.get("/astrology/profile", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
+  const [profile] = await db.select().from(fmAstrologyProfilesTable)
+    .where(eq(fmAstrologyProfilesTable.userId, fmUser.id)).limit(1);
   return res.json(profile ?? null);
 });
 
-router.post("/astrology/generate", authenticate, async (req: any, res) => {
+router.post("/astrology/generate", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
   const { birthDate, birthTime, birthLocation } = req.body ?? {};
   if (!birthDate) return res.status(400).json({ error: "birthDate is required (YYYY-MM-DD)" });
   const z = getZodiac(birthDate);
@@ -391,35 +393,37 @@ router.post("/astrology/generate", authenticate, async (req: any, res) => {
       z.element === "Air"   ? "Moderate — your analytical mind appreciates GL character development." :
                               "High — your loyalty makes you a dedicated GL fan.",
   };
-  const existing = await db.select().from(fmAstrologyProfilesTable).where(eq(fmAstrologyProfilesTable.userId, req.fmUserId)).limit(1);
+  const existing = await db.select().from(fmAstrologyProfilesTable)
+    .where(eq(fmAstrologyProfilesTable.userId, fmUser.id)).limit(1);
   let profile;
   if (existing.length > 0) {
     [profile] = await db.update(fmAstrologyProfilesTable)
       .set({ birthDate, birthTime: birthTime ?? null, birthLocation: birthLocation ?? null, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData })
-      .where(eq(fmAstrologyProfilesTable.userId, req.fmUserId))
-      .returning();
+      .where(eq(fmAstrologyProfilesTable.userId, fmUser.id)).returning();
   } else {
     [profile] = await db.insert(fmAstrologyProfilesTable)
-      .values({ userId: req.fmUserId, birthDate, birthTime: birthTime ?? null, birthLocation: birthLocation ?? null, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData })
+      .values({ userId: fmUser.id, birthDate, birthTime: birthTime ?? null, birthLocation: birthLocation ?? null, zodiacSign: z.sign, element: z.element, rulingPlanet: z.rulingPlanet, profileData })
       .returning();
   }
   return res.status(201).json(profile);
 });
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+// ─── Dashboard summary ────────────────────────────────────────────────────────
 
-router.get("/dashboard/summary", authenticate, async (req: any, res) => {
-  const [user] = await db.select().from(fmUsersTable).where(eq(fmUsersTable.id, req.fmUserId)).limit(1);
-  const isPremium = user?.subscriptionTier === "premium";
+router.get("/dashboard/summary", async (req, res) => {
+  const fmUser = await resolveFmUser(req, res);
+  if (!fmUser) return;
+  const isPremium = fmUser.subscriptionTier === "premium";
   const limit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
-  const [shipsCount] = await db.select({ value: count() }).from(fmShipsTable).where(eq(fmShipsTable.userId, req.fmUserId));
-  const [actressesCount] = await db.select({ value: count() }).from(fmActressesTable).where(eq(fmActressesTable.userId, req.fmUserId));
-  const [seriesCount] = await db.select({ value: count() }).from(fmSeriesTable).where(eq(fmSeriesTable.userId, req.fmUserId));
+  const [shipsCount] = await db.select({ value: count() }).from(fmShipsTable).where(eq(fmShipsTable.userId, fmUser.id));
+  const [actressesCount] = await db.select({ value: count() }).from(fmActressesTable).where(eq(fmActressesTable.userId, fmUser.id));
+  const [seriesCount] = await db.select({ value: count() }).from(fmSeriesTable).where(eq(fmSeriesTable.userId, fmUser.id));
   const [charactersCount] = await db.select({ value: count() }).from(fmCharactersTable);
   const today = new Date().toISOString().slice(0, 10);
-  const readings = await db.select().from(fmTarotReadingsTable).where(eq(fmTarotReadingsTable.userId, req.fmUserId));
+  const readings = await db.select().from(fmTarotReadingsTable).where(eq(fmTarotReadingsTable.userId, fmUser.id));
   const todayTarotDone = readings.some((r) => r.createdAt.toISOString().slice(0, 10) === today);
-  const [astro] = await db.select({ id: fmAstrologyProfilesTable.id }).from(fmAstrologyProfilesTable).where(eq(fmAstrologyProfilesTable.userId, req.fmUserId)).limit(1);
+  const [astro] = await db.select({ id: fmAstrologyProfilesTable.id }).from(fmAstrologyProfilesTable)
+    .where(eq(fmAstrologyProfilesTable.userId, fmUser.id)).limit(1);
   return res.json({
     totalShips: Number(shipsCount.value),
     totalActresses: Number(actressesCount.value),
@@ -430,25 +434,6 @@ router.get("/dashboard/summary", authenticate, async (req: any, res) => {
     todayTarotDone,
     hasAstrology: !!astro,
   });
-});
-
-// ─── Profile ─────────────────────────────────────────────────────────────────
-
-router.post("/profile/upgrade", authenticate, async (req: any, res) => {
-  const [user] = await db.update(fmUsersTable).set({ subscriptionTier: "premium" }).where(eq(fmUsersTable.id, req.fmUserId)).returning();
-  return res.json(formatUser(user));
-});
-
-router.post("/profile/change-password", authenticate, async (req: any, res) => {
-  const { currentPassword, newPassword } = req.body ?? {};
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: "currentPassword and newPassword are required" });
-  const [user] = await db.select().from(fmUsersTable).where(eq(fmUsersTable.id, req.fmUserId)).limit(1);
-  if (!user) return res.status(404).json({ error: "User not found" });
-  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-  if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
-  const passwordHash = await bcrypt.hash(newPassword, 10);
-  await db.update(fmUsersTable).set({ passwordHash }).where(eq(fmUsersTable.id, req.fmUserId));
-  return res.status(204).end();
 });
 
 export default router;

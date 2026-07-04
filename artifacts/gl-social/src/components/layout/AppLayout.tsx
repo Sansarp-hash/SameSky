@@ -12,7 +12,8 @@ import {
   ShieldAlert,
   LogOut,
   Menu,
-  Heart
+  Heart,
+  Search
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -26,6 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/feed", label: "Feed", icon: Home },
+    { href: "/search", label: "Search", icon: Search },
     { href: "/raffles", label: "Community", icon: Tv },
     { href: "/profile", label: "Profile", icon: UserIcon },
     { href: "/coins", label: "Stars Wallet", icon: Star },

@@ -13,4 +13,8 @@ limit?: number;
  * @nullable
  */
 hashtag?: string | null;
+/**
+ * If true, only return posts from followed users
+ */
+following?: boolean;
 };

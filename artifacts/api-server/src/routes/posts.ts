@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
-import { postsTable, postLikesTable, commentsTable, usersTable, notificationsTable } from "@workspace/db";
-import { eq, desc, and, sql, ilike } from "drizzle-orm";
+import { postsTable, postLikesTable, commentsTable, usersTable, notificationsTable, followsTable } from "@workspace/db";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { CreatePostBody, ListPostsQueryParams, CreateCommentBody } from "@workspace/api-zod";
 import { getOrCreateUser } from "./users";
 
@@ -34,25 +34,50 @@ router.get("/", async (req: Request, res: Response) => {
   const page = params.success ? (params.data.page ?? 1) : 1;
   const limit = params.success ? (params.data.limit ?? 20) : 20;
   const hashtag = params.success ? params.data.hashtag : undefined;
+  const followingOnly = params.success ? (params.data.following ?? false) : false;
   const offset = (page - 1) * limit;
 
   const { userId: clerkId } = getAuth(req);
   let currentUser = clerkId ? await getOrCreateUser(clerkId) : null;
 
   try {
-    let query = db.select().from(postsTable).orderBy(desc(postsTable.createdAt)).limit(limit).offset(offset);
+    let posts: typeof postsTable.$inferSelect[];
 
-    if (hashtag) {
-      query = db
+    if (followingOnly && currentUser) {
+      const followRows = await db.query.followsTable.findMany({
+        where: eq(followsTable.followerId, currentUser.id),
+      });
+      const followingIds = followRows.map((r) => r.followingId);
+
+      if (followingIds.length === 0) {
+        res.json({ posts: [], total: 0, page, limit });
+        return;
+      }
+
+      posts = await db
+        .select()
+        .from(postsTable)
+        .where(inArray(postsTable.authorId, followingIds))
+        .orderBy(desc(postsTable.createdAt))
+        .limit(limit)
+        .offset(offset);
+    } else if (hashtag) {
+      posts = await db
         .select()
         .from(postsTable)
         .where(sql`${postsTable.hashtags} @> ARRAY[${hashtag}]::text[]`)
         .orderBy(desc(postsTable.createdAt))
         .limit(limit)
         .offset(offset);
+    } else {
+      posts = await db
+        .select()
+        .from(postsTable)
+        .orderBy(desc(postsTable.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
 
-    const posts = await query;
     const totalResult = await db.select({ count: sql<number>`count(*)` }).from(postsTable);
     const total = Number(totalResult[0]?.count ?? 0);
 
@@ -107,7 +132,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 router.get("/:postId", async (req: Request, res: Response) => {
-  const postId = parseInt(req.params.postId);
+  const postId = parseInt(req.params.postId as string);
   const { userId: clerkId } = getAuth(req);
   let currentUser = clerkId ? await getOrCreateUser(clerkId) : null;
 
@@ -133,7 +158,7 @@ router.delete("/:postId", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const postId = parseInt(req.params.postId);
+  const postId = parseInt(req.params.postId as string);
   try {
     const user = await getOrCreateUser(clerkId);
     if (!user) {
@@ -163,7 +188,7 @@ router.post("/:postId/like", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const postId = parseInt(req.params.postId);
+  const postId = parseInt(req.params.postId as string);
   try {
     const user = await getOrCreateUser(clerkId);
     if (!user) {
@@ -211,7 +236,7 @@ router.post("/:postId/like", async (req: Request, res: Response) => {
 });
 
 router.get("/:postId/comments", async (req: Request, res: Response) => {
-  const postId = parseInt(req.params.postId);
+  const postId = parseInt(req.params.postId as string);
   try {
     const comments = await db.query.commentsTable.findMany({
       where: eq(commentsTable.postId, postId),
@@ -238,7 +263,7 @@ router.post("/:postId/comments", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const postId = parseInt(req.params.postId);
+  const postId = parseInt(req.params.postId as string);
   const parsed = CreateCommentBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid body" });

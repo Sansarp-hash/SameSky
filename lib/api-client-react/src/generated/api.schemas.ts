@@ -229,6 +229,30 @@ export interface PlatformStats {
   newPostsToday?: number;
 }
 
+export interface FollowStatus {
+  following: boolean;
+  followerCount: number;
+}
+
+export interface SearchResults {
+  users: User[];
+  posts: Post[];
+}
+
+export interface UploadUrlRequest {
+  /** @minLength 1 */
+  name: string;
+  /** @minimum 1 */
+  size: number;
+  /** @minLength 1 */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+}
+
 export type ListPostsParams = {
 page?: number;
 limit?: number;
@@ -236,6 +260,10 @@ limit?: number;
  * @nullable
  */
 hashtag?: string | null;
+/**
+ * If true, only return posts from followed users
+ */
+following?: boolean;
 };
 
 export type ListCoinTransactionsParams = {
@@ -257,6 +285,20 @@ export const ListRafflesStatus = {
   active: 'active',
   upcoming: 'upcoming',
   ended: 'ended',
+} as const;
+
+export type SearchParams = {
+q: string;
+type?: SearchType;
+};
+
+export type SearchType = typeof SearchType[keyof typeof SearchType];
+
+
+export const SearchType = {
+  all: 'all',
+  posts: 'posts',
+  users: 'users',
 } as const;
 
 export type ListNotificationsParams = {

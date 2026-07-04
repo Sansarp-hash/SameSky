@@ -112,11 +112,13 @@ export const VerifyAgeResponse = zod.object({
  */
 export const listPostsQueryPageDefault = 1;
 export const listPostsQueryLimitDefault = 20;
+export const listPostsQueryFollowingDefault = false;
 
 export const ListPostsQueryParams = zod.object({
   "page": zod.coerce.number().default(listPostsQueryPageDefault),
   "limit": zod.coerce.number().default(listPostsQueryLimitDefault),
-  "hashtag": zod.coerce.string().nullish()
+  "hashtag": zod.coerce.string().nullish(),
+  "following": zod.coerce.boolean().default(listPostsQueryFollowingDefault).describe('If true, only return posts from followed users')
 })
 
 export const ListPostsResponse = zod.object({
@@ -550,6 +552,150 @@ export const ListRaffleEntriesResponseItem = zod.object({
   "createdAt": zod.string()
 })
 export const ListRaffleEntriesResponse = zod.array(ListRaffleEntriesResponseItem)
+
+
+/**
+ * @summary Follow or unfollow a user
+ */
+export const ToggleFollowParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ToggleFollowResponse = zod.object({
+  "following": zod.boolean(),
+  "followerCount": zod.number()
+})
+
+
+/**
+ * @summary List followers of a user
+ */
+export const ListFollowersParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListFollowersResponseItem = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "country": zod.string().nullish(),
+  "role": zod.enum(['free', 'premium', 'admin']),
+  "coinBalance": zod.number(),
+  "isVerified": zod.boolean(),
+  "isBanned": zod.boolean(),
+  "ageVerified": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListFollowersResponse = zod.array(ListFollowersResponseItem)
+
+
+/**
+ * @summary List users that a user follows
+ */
+export const ListFollowingParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ListFollowingResponseItem = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "country": zod.string().nullish(),
+  "role": zod.enum(['free', 'premium', 'admin']),
+  "coinBalance": zod.number(),
+  "isVerified": zod.boolean(),
+  "isBanned": zod.boolean(),
+  "ageVerified": zod.boolean().optional(),
+  "createdAt": zod.string()
+})
+export const ListFollowingResponse = zod.array(ListFollowingResponseItem)
+
+
+/**
+ * @summary Search posts and users
+ */
+export const searchQueryTypeDefault = `all`;
+
+export const SearchQueryParams = zod.object({
+  "q": zod.coerce.string(),
+  "type": zod.enum(['all', 'posts', 'users']).default(searchQueryTypeDefault)
+})
+
+export const SearchResponse = zod.object({
+  "users": zod.array(zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "country": zod.string().nullish(),
+  "role": zod.enum(['free', 'premium', 'admin']),
+  "coinBalance": zod.number(),
+  "isVerified": zod.boolean(),
+  "isBanned": zod.boolean(),
+  "ageVerified": zod.boolean().optional(),
+  "createdAt": zod.string()
+})),
+  "posts": zod.array(zod.object({
+  "id": zod.number(),
+  "content": zod.string(),
+  "imageUrl": zod.string().nullish(),
+  "hashtags": zod.array(zod.string()).optional(),
+  "authorId": zod.number(),
+  "author": zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "country": zod.string().nullish(),
+  "role": zod.enum(['free', 'premium', 'admin']),
+  "coinBalance": zod.number(),
+  "isVerified": zod.boolean(),
+  "isBanned": zod.boolean(),
+  "ageVerified": zod.boolean().optional(),
+  "createdAt": zod.string()
+}),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "isLiked": zod.boolean(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+})
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url(),
+  "objectPath": zod.string()
+})
+
+
+/**
+ * @summary Serve an uploaded object
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string()
+})
+
+export const GetStorageObjectResponse = zod.unknown()
 
 
 /**

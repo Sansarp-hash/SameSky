@@ -16,6 +16,7 @@ import ProfilePage from "@/pages/profile";
 import CoinsPage from "@/pages/coins";
 import NotificationsPage from "@/pages/notifications";
 import SettingsPage from "@/pages/settings";
+import SearchPage from "@/pages/search";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -167,6 +168,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/coins"><ProtectedRoute component={CoinsPage} /></Route>
             <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
             <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
+            <Route path="/search"><ProtectedRoute component={SearchPage} /></Route>
             
             <Route><NotFound /></Route>
           </Switch>

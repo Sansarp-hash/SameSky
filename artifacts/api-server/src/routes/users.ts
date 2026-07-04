@@ -80,7 +80,7 @@ router.patch("/me", async (req: Request, res: Response) => {
 });
 
 router.get("/:userId", async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const userId = req.params.userId as string;
   try {
     let user;
     if (/^\d+$/.test(userId)) {

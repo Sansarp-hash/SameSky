@@ -44,7 +44,7 @@ router.patch("/:notificationId/read", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const notificationId = parseInt(req.params.notificationId);
+  const notificationId = parseInt(req.params.notificationId as string);
   try {
     const user = await getOrCreateUser(clerkId);
     if (!user) {

@@ -95,7 +95,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 router.get("/:raffleId", async (req: Request, res: Response) => {
-  const raffleId = parseInt(req.params.raffleId);
+  const raffleId = parseInt(req.params.raffleId as string);
   const { userId: clerkId } = getAuth(req);
   let currentUser = clerkId ? await getOrCreateUser(clerkId) : null;
 
@@ -118,7 +118,7 @@ router.post("/:raffleId/enter", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const raffleId = parseInt(req.params.raffleId);
+  const raffleId = parseInt(req.params.raffleId as string);
   try {
     const user = await getOrCreateUser(clerkId);
     if (!user) {
@@ -182,7 +182,7 @@ router.post("/:raffleId/draw", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const raffleId = parseInt(req.params.raffleId);
+  const raffleId = parseInt(req.params.raffleId as string);
   try {
     const user = await getOrCreateUser(clerkId);
     if (!user || user.role !== "admin") {
@@ -251,7 +251,7 @@ router.get("/:raffleId/entries", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  const raffleId = parseInt(req.params.raffleId);
+  const raffleId = parseInt(req.params.raffleId as string);
   try {
     const currentUser = await getOrCreateUser(clerkId);
     if (!currentUser || currentUser.role !== "admin") {

@@ -71,7 +71,7 @@ router.patch("/users/:userId/ban", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
 
-  const userId = req.params.userId;
+  const userId = req.params.userId as string;
   const parsed = AdminBanUserBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid body" });
@@ -107,7 +107,7 @@ router.post("/users/:userId/coins", async (req: Request, res: Response) => {
   const admin = await requireAdmin(req, res);
   if (!admin) return;
 
-  const userId = req.params.userId;
+  const userId = req.params.userId as string;
   const parsed = AdminAddCoinsBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid body" });

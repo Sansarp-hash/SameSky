@@ -28,6 +28,7 @@ import type {
   CoinTransaction,
   Comment,
   CommentInput,
+  FollowStatus,
   HealthStatus,
   LikeStatus,
   ListCoinTransactionsParams,
@@ -43,6 +44,10 @@ import type {
   RaffleEntry,
   RaffleInput,
   RaffleWinner,
+  SearchParams,
+  SearchResults,
+  UploadUrlRequest,
+  UploadUrlResponse,
   User,
   UserPage,
   UserUpdate
@@ -1562,6 +1567,461 @@ export function useListRaffleEntries<TData = Awaited<ReturnType<typeof listRaffl
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListRaffleEntriesQueryOptions(raffleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getToggleFollowUrl = (userId: number,) => {
+
+
+
+
+  return `/api/users/${userId}/follow`
+}
+
+/**
+ * @summary Follow or unfollow a user
+ */
+export const toggleFollow = async (userId: number, options?: RequestInit): Promise<FollowStatus> => {
+
+  return customFetch<FollowStatus>(getToggleFollowUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getToggleFollowMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleFollow>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof toggleFollow>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['toggleFollow'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof toggleFollow>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  toggleFollow(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ToggleFollowMutationResult = NonNullable<Awaited<ReturnType<typeof toggleFollow>>>
+
+    export type ToggleFollowMutationError = ErrorType<void>
+
+    /**
+ * @summary Follow or unfollow a user
+ */
+export const useToggleFollow = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof toggleFollow>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof toggleFollow>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getToggleFollowMutationOptions(options));
+    }
+
+export const getListFollowersUrl = (userId: number,) => {
+
+
+
+
+  return `/api/users/${userId}/followers`
+}
+
+/**
+ * @summary List followers of a user
+ */
+export const listFollowers = async (userId: number, options?: RequestInit): Promise<User[]> => {
+
+  return customFetch<User[]>(getListFollowersUrl(userId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFollowersQueryKey = (userId: number,) => {
+    return [
+    `/api/users/${userId}/followers`
+    ] as const;
+    }
+
+
+export const getListFollowersQueryOptions = <TData = Awaited<ReturnType<typeof listFollowers>>, TError = ErrorType<unknown>>(userId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFollowers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFollowersQueryKey(userId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFollowers>>> = ({ signal }) => listFollowers(userId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFollowers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFollowersQueryResult = NonNullable<Awaited<ReturnType<typeof listFollowers>>>
+export type ListFollowersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List followers of a user
+ */
+
+export function useListFollowers<TData = Awaited<ReturnType<typeof listFollowers>>, TError = ErrorType<unknown>>(
+ userId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFollowers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFollowersQueryOptions(userId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListFollowingUrl = (userId: number,) => {
+
+
+
+
+  return `/api/users/${userId}/following`
+}
+
+/**
+ * @summary List users that a user follows
+ */
+export const listFollowing = async (userId: number, options?: RequestInit): Promise<User[]> => {
+
+  return customFetch<User[]>(getListFollowingUrl(userId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFollowingQueryKey = (userId: number,) => {
+    return [
+    `/api/users/${userId}/following`
+    ] as const;
+    }
+
+
+export const getListFollowingQueryOptions = <TData = Awaited<ReturnType<typeof listFollowing>>, TError = ErrorType<unknown>>(userId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFollowing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFollowingQueryKey(userId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFollowing>>> = ({ signal }) => listFollowing(userId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFollowing>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFollowingQueryResult = NonNullable<Awaited<ReturnType<typeof listFollowing>>>
+export type ListFollowingQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List users that a user follows
+ */
+
+export function useListFollowing<TData = Awaited<ReturnType<typeof listFollowing>>, TError = ErrorType<unknown>>(
+ userId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFollowing>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFollowingQueryOptions(userId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSearchUrl = (params: SearchParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/search?${stringifiedParams}` : `/api/search`
+}
+
+/**
+ * @summary Search posts and users
+ */
+export const search = async (params: SearchParams, options?: RequestInit): Promise<SearchResults> => {
+
+  return customFetch<SearchResults>(getSearchUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchQueryKey = (params?: SearchParams,) => {
+    return [
+    `/api/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchQueryOptions = <TData = Awaited<ReturnType<typeof search>>, TError = ErrorType<unknown>>(params: SearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof search>>> = ({ signal }) => search(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SearchQueryResult = NonNullable<Awaited<ReturnType<typeof search>>>
+export type SearchQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Search posts and users
+ */
+
+export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ErrorType<unknown>>(
+ params: SearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSearchQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRequestUploadUrlUrl = () => {
+
+
+
+
+  return `/api/storage/uploads/request-url`
+}
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+export const requestUploadUrl = async (uploadUrlRequest: UploadUrlRequest, options?: RequestInit): Promise<UploadUrlResponse> => {
+
+  return customFetch<UploadUrlResponse>(getRequestUploadUrlUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(uploadUrlRequest)
+  }
+);}
+
+
+
+
+export const getRequestUploadUrlMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext> => {
+
+const mutationKey = ['requestUploadUrl'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestUploadUrl>>, {data: BodyType<UploadUrlRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestUploadUrl(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestUploadUrlMutationResult = NonNullable<Awaited<ReturnType<typeof requestUploadUrl>>>
+    export type RequestUploadUrlMutationBody = BodyType<UploadUrlRequest>
+    export type RequestUploadUrlMutationError = ErrorType<void>
+
+    /**
+ * @summary Request a presigned URL for file upload
+ */
+export const useRequestUploadUrl = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestUploadUrl>>,
+        TError,
+        {data: BodyType<UploadUrlRequest>},
+        TContext
+      > => {
+      return useMutation(getRequestUploadUrlMutationOptions(options));
+    }
+
+export const getGetStorageObjectUrl = (objectPath: string,) => {
+
+
+
+
+  return `/api/storage/objects/${objectPath}`
+}
+
+/**
+ * @summary Serve an uploaded object
+ */
+export const getStorageObject = async (objectPath: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetStorageObjectUrl(objectPath),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStorageObjectQueryKey = (objectPath: string,) => {
+    return [
+    `/api/storage/objects/${objectPath}`
+    ] as const;
+    }
+
+
+export const getGetStorageObjectQueryOptions = <TData = Awaited<ReturnType<typeof getStorageObject>>, TError = ErrorType<void>>(objectPath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStorageObjectQueryKey(objectPath);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStorageObject>>> = ({ signal }) => getStorageObject(objectPath, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: objectPath !== null && objectPath !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStorageObjectQueryResult = NonNullable<Awaited<ReturnType<typeof getStorageObject>>>
+export type GetStorageObjectQueryError = ErrorType<void>
+
+
+/**
+ * @summary Serve an uploaded object
+ */
+
+export function useGetStorageObject<TData = Awaited<ReturnType<typeof getStorageObject>>, TError = ErrorType<void>>(
+ objectPath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStorageObjectQueryOptions(objectPath,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

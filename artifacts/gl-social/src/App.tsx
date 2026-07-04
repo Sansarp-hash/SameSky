@@ -5,6 +5,7 @@ import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
+import { CurrencyProvider } from "@/hooks/use-currency";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/layout/AppLayout";
@@ -14,6 +15,7 @@ import AdminPage from "@/pages/admin";
 import RafflesPage from "@/pages/raffles";
 import ProfilePage from "@/pages/profile";
 import CoinsPage from "@/pages/coins";
+import PremiumPage from "@/pages/premium";
 import NotificationsPage from "@/pages/notifications";
 import SettingsPage from "@/pages/settings";
 import SearchPage from "@/pages/search";
@@ -167,6 +169,7 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
+        <CurrencyProvider>
         <TooltipProvider>
           <Switch>
             <Route path="/" component={HomeRedirect} />
@@ -178,6 +181,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/raffles"><ProtectedRoute component={RafflesPage} /></Route>
             <Route path="/profile/:userId?"><ProtectedRoute component={ProfilePage} /></Route>
             <Route path="/coins"><ProtectedRoute component={CoinsPage} /></Route>
+            <Route path="/premium"><ProtectedRoute component={PremiumPage} /></Route>
             <Route path="/notifications"><ProtectedRoute component={NotificationsPage} /></Route>
             <Route path="/settings"><ProtectedRoute component={SettingsPage} /></Route>
             <Route path="/search"><ProtectedRoute component={SearchPage} /></Route>
@@ -199,6 +203,7 @@ function ClerkProviderWithRoutes() {
           </Switch>
           <Toaster />
         </TooltipProvider>
+        </CurrencyProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );

@@ -17,9 +17,11 @@ import {
   Sparkles,
   Film,
   Play,
-  Anchor
+  Anchor,
+  Crown
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { CurrencySwitcher } from "@/components/CurrencySwitcher";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: me } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -39,6 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/mystic", label: "Mystic Profile", icon: Sparkles },
     { href: "/profile", label: "Profile", icon: UserIcon },
     { href: "/coins", label: "Stars Wallet", icon: Star },
+    { href: "/premium", label: "Premium", icon: Crown },
     { href: "/notifications", label: "Notifications", icon: Bell, badge: notifs?.length },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
@@ -85,6 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Star className="w-4 h-4 text-secondary fill-secondary" /> {me.coinBalance.toLocaleString()}
               </span>
             </div>
+            <CurrencySwitcher compact />
           </div>
         )}
         <Button 

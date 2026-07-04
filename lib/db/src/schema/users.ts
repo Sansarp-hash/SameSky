@@ -39,6 +39,8 @@ export const usersTable = pgTable("users", {
   bio: text("bio"),
   country: text("country"),
   preferredLanguage: text("preferred_language").default("en"),
+  currencyPreference: text("currency_preference"),
+  stripeCustomerId: text("stripe_customer_id"),
   socialLinks: jsonb("social_links").default({}),
 
   role: userRoleEnum("role").notNull().default("free"),

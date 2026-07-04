@@ -1,2 +1,3 @@
 - [Backend logic rules](backend-logic-rules.md) — eleven critical system rules from spec (age gate, mute, draw formula, ban cascade, i18n fallback, etc.)
 - [Schema overview](schema-overview.md) — 50-table DB layout; integer serial PKs throughout (not UUIDs); Drizzle ORM + PostgreSQL
+- [stripe-replit-sync quirks](stripe-replit-sync-quirks.md) — two migration gotchas: esbuild __dirname banner + unqualified enum guard collision

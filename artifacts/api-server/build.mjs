@@ -29,6 +29,9 @@ async function buildAll() {
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
       "*.node",
+      // Ships SQL migration files it loads via path traversal relative to its own
+      // __dirname; bundling breaks that resolution, so keep it external.
+      "stripe-replit-sync",
       "sharp",
       "better-sqlite3",
       "sqlite3",

@@ -5,6 +5,7 @@ import { Star, ArrowDownLeft, ArrowUpRight, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { usePaystack } from "@/hooks/use-paystack";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/hooks/use-currency";
 import { useQueryClient } from "@tanstack/react-query";
 
 const PACKS = [
@@ -19,6 +20,7 @@ export default function CoinsPage() {
   const { data: txData, isLoading: txLoading } = useListCoinTransactions({}, { query: { queryKey: getListCoinTransactionsQueryKey({}) } });
   const { buyStars, loading } = usePaystack();
   const { toast } = useToast();
+  const { formatFromUsd, currency } = useCurrency();
   const queryClient = useQueryClient();
 
   // Handle Paystack redirect-back
@@ -96,7 +98,7 @@ export default function CoinsPage() {
                 {pack.stars.toLocaleString()}
                 <span className="text-base font-medium text-primary ml-1.5">Stars</span>
               </div>
-              <div className="text-sm text-white/40 mt-1">${pack.priceUsd}.00</div>
+              <div className="text-sm text-white/40 mt-1">{formatFromUsd(pack.priceUsd)}</div>
 
               <div className={`mt-4 text-sm font-semibold flex items-center gap-2
                 ${pack.popular ? "text-primary" : "text-white/60 group-hover:text-white/90"}`}>
@@ -109,7 +111,9 @@ export default function CoinsPage() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-white/30 text-center">Powered by Paystack — priced in USD, charged in the GHS equivalent</p>
+        <p className="text-xs text-white/30 text-center">
+          Prices shown in {currency}. Star packs are billed securely; amounts are converted live from USD.
+        </p>
       </div>
 
       {/* Transaction history */}

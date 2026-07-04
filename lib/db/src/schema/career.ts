@@ -1,14 +1,15 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
 import { actressProfilesTable } from "./actress_profiles";
 
 export const careerListingTypeEnum = pgEnum("career_listing_type", [
-  "casting_call",
   "audition",
-  "screenwriting",
-  "production_crew",
+  "casting_call",
+  "writing",
+  "production",
+  "gl_industry_role",
 ]);
 
 export const careerListingStatusEnum = pgEnum("career_listing_status", ["open", "closed"]);
@@ -29,8 +30,12 @@ export const creatorApplicationStatusEnum = pgEnum("creator_application_status",
 export const careerListingsTable = pgTable("career_listings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  companyOrBrand: text("company_or_brand"),
   type: careerListingTypeEnum("type").notNull(),
   description: text("description").notNull(),
+  requirements: text("requirements"),
+  location: text("location"),
+  isActive: boolean("is_active").notNull().default(true),
   postedById: integer("posted_by_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   actressId: integer("actress_id").references(() => actressProfilesTable.id, { onDelete: "set null" }),
   applicationDeadline: timestamp("application_deadline", { withTimezone: true }),
@@ -51,11 +56,13 @@ export const careerApplicationsTable = pgTable("career_applications", {
 export const creatorApplicationsTable = pgTable("creator_applications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
-  portfolioUrl: text("portfolio_url"),
+  legalName: text("legal_name").notNull(),
+  portfolioLinks: text("portfolio_links").array().notNull().default([]),
   socialHandles: jsonb("social_handles").notNull().default({}),
   statement: text("statement").notNull(),
+  verificationNotes: text("verification_notes"),
   status: creatorApplicationStatusEnum("status").notNull().default("pending"),
-  reviewedById: integer("reviewed_by_id").references(() => usersTable.id, { onDelete: "set null" }),
+  processedById: integer("processed_by_id").references(() => usersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
 });

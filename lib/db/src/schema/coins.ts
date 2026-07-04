@@ -19,6 +19,7 @@ export const coinTransactionsTable = pgTable("coin_transactions", {
   amount: integer("amount").notNull(),
   type: coinTransactionTypeEnum("type").notNull(),
   description: text("description").notNull(),
+  targetRef: text("target_ref"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

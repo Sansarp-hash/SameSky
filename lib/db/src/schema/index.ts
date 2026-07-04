@@ -17,3 +17,5 @@ export * from "./social_controls";
 export * from "./subscriptions";
 export * from "./raffles_advanced";
 export * from "./career";
+export * from "./reports";
+export * from "./homepage";

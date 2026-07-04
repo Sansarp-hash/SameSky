@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
-import { postsTable, postLikesTable, commentsTable, usersTable, notificationsTable, followsTable } from "@workspace/db";
+import { postsTable, postLikesTable, commentsTable, usersTable, notificationsTable, followsTable, coinTransactionsTable } from "@workspace/db";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { CreatePostBody, ListPostsQueryParams, CreateCommentBody } from "@workspace/api-zod";
 import { getOrCreateUser } from "./users";
@@ -35,6 +35,7 @@ router.get("/", async (req: Request, res: Response) => {
   const limit = params.success ? (params.data.limit ?? 20) : 20;
   const hashtag = params.success ? params.data.hashtag : undefined;
   const followingOnly = params.success ? (params.data.following ?? false) : false;
+  const filterAuthorId = params.success ? (params.data.authorId ?? undefined) : undefined;
   const offset = (page - 1) * limit;
 
   const { userId: clerkId } = getAuth(req);
@@ -43,7 +44,15 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     let posts: typeof postsTable.$inferSelect[];
 
-    if (followingOnly && currentUser) {
+    if (filterAuthorId) {
+      posts = await db
+        .select()
+        .from(postsTable)
+        .where(eq(postsTable.authorId, filterAuthorId))
+        .orderBy(desc(postsTable.createdAt))
+        .limit(limit)
+        .offset(offset);
+    } else if (followingOnly && currentUser) {
       const followRows = await db.query.followsTable.findMany({
         where: eq(followsTable.followerId, currentUser.id),
       });
@@ -78,7 +87,10 @@ router.get("/", async (req: Request, res: Response) => {
         .offset(offset);
     }
 
-    const totalResult = await db.select({ count: sql<number>`count(*)` }).from(postsTable);
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(postsTable)
+      .where(filterAuthorId ? eq(postsTable.authorId, filterAuthorId) : undefined);
     const total = Number(totalResult[0]?.count ?? 0);
 
     const enriched = await Promise.all(posts.map((p) => enrichPost(p, currentUser?.id)));
@@ -125,6 +137,19 @@ router.post("/", async (req: Request, res: Response) => {
 
     const enriched = await enrichPost(post, user.id);
     res.status(201).json(enriched);
+
+    // Credit 3 Stars for posting — fire-and-forget (non-blocking)
+    db.transaction(async (tx) => {
+      await tx.update(usersTable)
+        .set({ coinBalance: sql`${usersTable.coinBalance} + 3` })
+        .where(eq(usersTable.id, user.id));
+      await tx.insert(coinTransactionsTable).values({
+        userId: user.id,
+        amount: 3,
+        type: "earn",
+        description: "Earned Stars for posting",
+      });
+    }).catch((err) => req.log.warn({ err }, "Stars reward failed (non-fatal)"));
   } catch (err) {
     req.log.error({ err }, "Error creating post");
     res.status(500).json({ error: "Internal server error" });

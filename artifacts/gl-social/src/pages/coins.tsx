@@ -125,16 +125,16 @@ export default function CoinsPage() {
               {txData.map(tx => (
                 <div key={tx.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-white/5 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === "credit" ? "bg-green-500/10 text-green-400" : "bg-white/5 text-white/60"}`}>
-                      {tx.type === "credit" ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${["earn","purchase","bonus","raffle_refund"].includes(tx.type) ? "bg-green-500/10 text-green-400" : "bg-white/5 text-white/60"}`}>
+                      {["earn","purchase","bonus","raffle_refund"].includes(tx.type) ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                     </div>
                     <div>
                       <div className="font-medium text-white/90">{tx.description}</div>
                       <div className="text-xs text-muted-foreground">{format(new Date(tx.createdAt), "PPp")}</div>
                     </div>
                   </div>
-                  <div className={`font-semibold text-lg ${tx.type === "credit" ? "text-green-400" : "text-white/80"}`}>
-                    {tx.type === "credit" ? "+" : "-"}{tx.amount}
+                  <div className={`font-semibold text-lg ${["earn","purchase","bonus","raffle_refund"].includes(tx.type) ? "text-green-400" : "text-white/80"}`}>
+                    {["earn","purchase","bonus","raffle_refund"].includes(tx.type) ? "+" : "-"}{tx.amount}
                   </div>
                 </div>
               ))}

@@ -118,7 +118,8 @@ export const ListPostsQueryParams = zod.object({
   "page": zod.coerce.number().default(listPostsQueryPageDefault),
   "limit": zod.coerce.number().default(listPostsQueryLimitDefault),
   "hashtag": zod.coerce.string().nullish(),
-  "following": zod.coerce.boolean().default(listPostsQueryFollowingDefault).describe('If true, only return posts from followed users')
+  "following": zod.coerce.boolean().default(listPostsQueryFollowingDefault).describe('If true, only return posts from followed users'),
+  "authorId": zod.coerce.number().nullish().describe('Filter posts by author user ID')
 })
 
 export const ListPostsResponse = zod.object({

@@ -199,6 +199,14 @@ router.get("/series", async (req, res) => {
 router.post("/series", async (req, res) => {
   const fmUser = await resolveFmUser(req, res);
   if (!fmUser) return;
+  const limit = fmUser.subscriptionTier === "premium" ? PREMIUM_LIMIT : FREE_LIMIT;
+  const [{ seriesCount }] = await db
+    .select({ seriesCount: count() })
+    .from(fmSeriesTable)
+    .where(eq(fmSeriesTable.userId, fmUser.id));
+  if (Number(seriesCount) >= limit) {
+    return res.status(403).json({ error: `Limit of ${limit} series reached. Upgrade to premium for more.` });
+  }
   const { title, status } = req.body ?? {};
   if (!title || !status) return res.status(400).json({ error: "title and status are required" });
   const [series] = await db

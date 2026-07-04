@@ -264,6 +264,11 @@ hashtag?: string | null;
  * If true, only return posts from followed users
  */
 following?: boolean;
+/**
+ * Filter posts by author user ID
+ * @nullable
+ */
+authorId?: number | null;
 };
 
 export type ListCoinTransactionsParams = {

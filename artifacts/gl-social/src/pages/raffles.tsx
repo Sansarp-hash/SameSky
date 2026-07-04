@@ -16,7 +16,7 @@ export default function RafflesPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight text-white mb-2">The Vault</h1>
-        <p className="text-muted-foreground text-sm">Spend your GL Coins on exclusive prizes.</p>
+        <p className="text-muted-foreground text-sm">Spend your Stars on exclusive community prizes.</p>
       </header>
 
       {isLoading ? (
@@ -53,7 +53,7 @@ export default function RafflesPage() {
             <div className="text-center p-12 bg-card/20 border border-white/5 rounded-3xl backdrop-blur-sm">
               <Ticket className="w-12 h-12 text-white/20 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Vault is locked</h3>
-              <p className="text-muted-foreground text-sm">No raffles available at the moment. Keep earning coins.</p>
+              <p className="text-muted-foreground text-sm">No raffles available at the moment. Keep earning Stars.</p>
             </div>
           )}
         </>

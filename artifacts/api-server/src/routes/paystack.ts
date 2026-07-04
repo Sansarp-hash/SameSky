@@ -17,11 +17,27 @@ import {
   coinTransactionsTable,
   coinPurchasesTable,
   fmUsersTable,
+  notificationsTable,
 } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { initializeTransaction, verifyTransaction } from "../lib/paystackClient";
 import { getOrCreateUser } from "./users";
 import { randomUUID } from "crypto";
+
+// ─── Resolve the public-facing origin for Paystack callback URLs ──────────────
+// In Replit's proxied environment req.get("host") may return an internal
+// hostname. Prefer REPLIT_DOMAINS (always the real public domain) first.
+function getPublicOrigin(req: import("express").Request): string {
+  const domains = process.env.REPLIT_DOMAINS;
+  if (domains) {
+    const primary = domains.split(",")[0]?.trim();
+    if (primary) return `https://${primary}`;
+  }
+  const fwdHost = req.headers["x-forwarded-host"];
+  const host = Array.isArray(fwdHost) ? fwdHost[0] : (fwdHost ?? req.get("host") ?? "localhost");
+  const proto = (req.headers["x-forwarded-proto"] as string | undefined) ?? req.protocol ?? "https";
+  return `${proto}://${host}`;
+}
 
 const router = Router();
 
@@ -78,7 +94,7 @@ router.post("/paystack/checkout/coins", async (req: Request, res: Response) => {
 
     const email = await getUserEmail(clerkId);
     const reference = `coins_${user.id}_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
-    const origin = `${req.protocol}://${req.get("host")}`;
+    const origin = getPublicOrigin(req);
 
     const init = await initializeTransaction({
       email,
@@ -123,7 +139,7 @@ router.post("/paystack/checkout/mystic-premium", async (req: Request, res: Respo
 
     const email = await getUserEmail(clerkId);
     const reference = `mystic_${user.id}_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
-    const origin = `${req.protocol}://${req.get("host")}`;
+    const origin = getPublicOrigin(req);
 
     const init = await initializeTransaction({
       email,
@@ -155,7 +171,7 @@ router.get("/paystack/verify", async (req: Request, res: Response) => {
 
     if (data.status !== "success") {
       // Redirect to frontend with failure indicator
-      const origin = `${req.protocol}://${req.get("host")}`;
+      const origin = getPublicOrigin(req);
       res.redirect(`${origin}/?payment=failed&reference=${reference}`);
       return;
     }
@@ -164,11 +180,11 @@ router.get("/paystack/verify", async (req: Request, res: Response) => {
 
     if (type === "coin_pack") {
       await fulfillCoinPack(data);
-      const origin = `${req.protocol}://${req.get("host")}`;
+      const origin = getPublicOrigin(req);
       res.redirect(`${origin}/?payment=success&type=coins&reference=${reference}`);
     } else if (type === "mystic_premium") {
       await fulfillMysticPremium(data);
-      const origin = `${req.protocol}://${req.get("host")}`;
+      const origin = getPublicOrigin(req);
       res.redirect(`${origin}/?payment=success&type=mystic_premium&reference=${reference}`);
     } else {
       res.status(400).json({ error: "Unknown payment type" });
@@ -252,7 +268,14 @@ async function fulfillCoinPack(data: import("../lib/paystackClient").PaystackVer
       userId,
       packSize: stars,
       pricePaid: String(priceGhs),
-      stripePaymentIntentId: data.reference, // repurposed column for Paystack reference
+      stripePaymentIntentId: data.reference,
+    });
+
+    await tx.insert(notificationsTable).values({
+      userId,
+      type: "coin_received",
+      title: "Stars added to your wallet",
+      message: `${stars} Stars have been added to your account. Enjoy!`,
     });
   });
 }

@@ -4,10 +4,11 @@ import { useParams } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, CheckCircle2, UserPlus, UserCheck } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, UserPlus, UserCheck, ArrowLeft } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Link } from "wouter";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -25,7 +26,6 @@ export default function ProfilePage() {
 
   const user = isMe ? meData : userData;
   const isLoading = isMe ? meLoading : userLoading;
-
   const targetId = isMe ? meData?.id : userData?.id;
 
   const { data: followersData } = useListFollowers(targetId ?? 0, {
@@ -36,7 +36,6 @@ export default function ProfilePage() {
   });
 
   const toggleFollow = useToggleFollow();
-
   const followerCount = followersData?.length ?? 0;
   const followingCount = followingData?.length ?? 0;
 
@@ -66,11 +65,12 @@ export default function ProfilePage() {
     );
   };
 
+  // Fetch only this user's posts via the authorId filter — no client-side filtering needed
+  const postsParams = targetId ? { authorId: targetId } : null;
   const { data: postsData, isLoading: postsLoading } = useListPosts(
-    {},
-    { query: { queryKey: getListPostsQueryKey({}) } }
+    postsParams ?? {},
+    { query: { queryKey: getListPostsQueryKey(postsParams ?? {}), enabled: !!targetId } }
   );
-  const userPosts = postsData?.posts.filter((p) => p.authorId === user?.id) || [];
 
   if (isLoading) {
     return (
@@ -85,11 +85,19 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return <div className="text-center p-12 text-white">User not found</div>;
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <p className="text-white/60 text-sm">User not found.</p>
+        <Button asChild variant="outline" size="sm" className="border-white/20 text-white/60">
+          <Link href="/feed"><ArrowLeft className="w-4 h-4 mr-2" />Back to feed</Link>
+        </Button>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-0 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Profile header */}
       <div className="bg-card/40 backdrop-blur-xl border-b border-white/5 p-6 relative overflow-hidden">
         <div className={`absolute inset-0 pointer-events-none opacity-10 ${user.role === "admin" ? "bg-gradient-to-br from-red-500" : "bg-gradient-to-br from-primary"}`} />
 
@@ -105,7 +113,7 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-1">
               <h1 className="text-2xl font-bold text-white tracking-tight flex items-center justify-center sm:justify-start gap-2">
                 {user.username}
-                {user.ageVerified && <CheckCircle2 className="w-4 h-4 text-primary" aria-label="Verified" />}
+                {user.ageVerified && <CheckCircle2 className="w-4 h-4 text-primary" aria-label="Age verified" />}
               </h1>
               {!isMe && meData && (
                 <Button
@@ -115,14 +123,13 @@ export default function ProfilePage() {
                   disabled={followLoading}
                   onClick={handleFollow}
                 >
-                  {isFollowingUser ? (
-                    <><UserCheck className="w-4 h-4" /> Following</>
-                  ) : (
-                    <><UserPlus className="w-4 h-4" /> Follow</>
-                  )}
+                  {isFollowingUser
+                    ? <><UserCheck className="w-4 h-4" /> Following</>
+                    : <><UserPlus className="w-4 h-4" /> Follow</>}
                 </Button>
               )}
             </div>
+
             <div className="text-sm text-primary/80 capitalize tracking-wide mb-2">{user.role} Member</div>
             {user.bio && <p className="text-foreground/70 text-sm leading-relaxed max-w-md mb-3">{user.bio}</p>}
 
@@ -140,14 +147,18 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Posts */}
       <div className="p-4 space-y-4">
         <h2 className="text-base font-semibold text-white/70">Posts</h2>
 
         {postsLoading ? (
-          <Skeleton className="h-32 w-full rounded-2xl" />
-        ) : userPosts.length > 0 ? (
+          <div className="space-y-3">
+            <Skeleton className="h-28 w-full rounded-2xl" />
+            <Skeleton className="h-28 w-full rounded-2xl" />
+          </div>
+        ) : postsData?.posts && postsData.posts.length > 0 ? (
           <div className="space-y-4">
-            {userPosts.map((post) => (
+            {postsData.posts.map((post) => (
               <div key={post.id} className="bg-card/30 border border-white/5 p-5 rounded-2xl">
                 <div className="text-xs text-muted-foreground mb-3">
                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}

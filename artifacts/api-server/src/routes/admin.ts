@@ -140,8 +140,8 @@ router.post("/users/:userId/coins", async (req: Request, res: Response) => {
     await db.insert(notificationsTable).values({
       userId: user.id,
       type: "coin_received",
-      title: `GL Coins ${parsed.data.amount >= 0 ? "received" : "deducted"}`,
-      message: `${Math.abs(parsed.data.amount)} GL Coins ${parsed.data.amount >= 0 ? "added to" : "removed from"} your account. ${parsed.data.description}`,
+      title: `Stars ${parsed.data.amount >= 0 ? "received" : "deducted"}`,
+      message: `${Math.abs(parsed.data.amount)} Stars ${parsed.data.amount >= 0 ? "added to" : "removed from"} your account. ${parsed.data.description}`,
     });
 
     res.json({ userId: user.id, balance: newBalance });

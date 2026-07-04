@@ -144,6 +144,11 @@ paths:
           schema:
             type: boolean
             default: false
+        - name: authorId
+          in: query
+          description: Filter posts by author user ID
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Posts list

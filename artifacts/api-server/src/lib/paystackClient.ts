@@ -1,6 +1,6 @@
 /**
  * Paystack API client for SameSky.
- * Currency: GHS (Ghanaian Cedi). All amounts in pesewas (1 GHS = 100 pesewas).
+ * Currency: USD. All amounts in cents (1 USD = 100 cents).
  * Docs: https://paystack.com/docs/api
  */
 
@@ -55,7 +55,7 @@ export interface PaystackInitData {
 export interface PaystackVerifyData {
   status: "success" | "failed" | "abandoned";
   reference: string;
-  amount: number;       // in pesewas
+  amount: number;       // in cents
   currency: string;
   paid_at: string;
   metadata: Record<string, string>;
@@ -70,15 +70,15 @@ export interface PaystackVerifyData {
  */
 export async function initializeTransaction(params: {
   email: string;
-  amountPesewas: number;
+  amountCents: number;
   reference?: string;
   callbackUrl: string;
   metadata: Record<string, string>;
 }): Promise<PaystackInitData> {
   return paystackFetch<PaystackInitData>("POST", "/transaction/initialize", {
     email: params.email,
-    amount: params.amountPesewas,
-    currency: "GHS",
+    amount: params.amountCents,
+    currency: "USD",
     callback_url: params.callbackUrl,
     metadata: params.metadata,
     ...(params.reference ? { reference: params.reference } : {}),

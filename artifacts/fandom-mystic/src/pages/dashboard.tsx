@@ -44,7 +44,7 @@ export default function Dashboard() {
             <Zap className="w-5 h-5 text-secondary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-white">Mystic Premium — GHS 15</p>
+            <p className="font-semibold text-white">Mystic Premium — $5</p>
             <p className="text-sm text-muted-foreground">Unlock 30 ships, actresses, characters and series</p>
           </div>
           <Button

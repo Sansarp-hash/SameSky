@@ -8,10 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 const PACKS = [
-  { id: "starter" as const, name: "Starter Pack",  stars: 100,  priceGhs: 5,   popular: false },
-  { id: "fan"     as const, name: "Fan Pack",       stars: 500,  priceGhs: 20,  popular: true  },
-  { id: "superfan" as const, name: "Super Fan",     stars: 1200, priceGhs: 45,  popular: false },
-  { id: "legend"  as const, name: "Legend Pack",    stars: 3000, priceGhs: 100, popular: false },
+  { id: "starter" as const, name: "Starter Pack",  stars: 100,  priceUsd: 2,  popular: false },
+  { id: "fan"     as const, name: "Fan Pack",       stars: 500,  priceUsd: 8,  popular: true  },
+  { id: "superfan" as const, name: "Super Fan",     stars: 1200, priceUsd: 18, popular: false },
+  { id: "legend"  as const, name: "Legend Pack",    stars: 3000, priceUsd: 40, popular: false },
 ];
 
 export default function CoinsPage() {
@@ -96,7 +96,7 @@ export default function CoinsPage() {
                 {pack.stars.toLocaleString()}
                 <span className="text-base font-medium text-primary ml-1.5">Stars</span>
               </div>
-              <div className="text-sm text-white/40 mt-1">GHS {pack.priceGhs}.00</div>
+              <div className="text-sm text-white/40 mt-1">${pack.priceUsd}.00</div>
 
               <div className={`mt-4 text-sm font-semibold flex items-center gap-2
                 ${pack.popular ? "text-primary" : "text-white/60 group-hover:text-white/90"}`}>
@@ -109,7 +109,7 @@ export default function CoinsPage() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-white/30 text-center">Powered by Paystack — GHS payments only</p>
+        <p className="text-xs text-white/30 text-center">Powered by Paystack — USD payments</p>
       </div>
 
       {/* Transaction history */}

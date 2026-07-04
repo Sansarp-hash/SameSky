@@ -6,7 +6,7 @@
  *   2. POST /api/paystack/checkout/mystic-premium — init Mystic Premium purchase
  *   3. GET  /api/paystack/verify?reference=xxx  — verify + fulfill after redirect
  *
- * Currency: GHS. Amounts in pesewas (1 GHS = 100 pesewas).
+ * Currency: USD. Amounts in cents (1 USD = 100 cents).
  */
 
 import { Router, type Request, type Response } from "express";
@@ -27,7 +27,7 @@ import { randomUUID } from "crypto";
 // ─── Resolve the public-facing origin for Paystack callback URLs ──────────────
 // In Replit's proxied environment req.get("host") may return an internal
 // hostname. Prefer REPLIT_DOMAINS (always the real public domain) first.
-function getPublicOrigin(req: import("express").Request): string {
+function getPublicOrigin(req: Request): string {
   const domains = process.env.REPLIT_DOMAINS;
   if (domains) {
     const primary = domains.split(",")[0]?.trim();
@@ -41,15 +41,15 @@ function getPublicOrigin(req: import("express").Request): string {
 
 const router = Router();
 
-// ─── Coin pack catalogue (amount in pesewas) ──────────────────────────────────
+// ─── Coin pack catalogue (amount in cents, USD) ───────────────────────────────
 export const COIN_PACKS = [
-  { id: "starter",  name: "Starter Pack",  stars: 100,  pesewas: 500   }, // GHS 5
-  { id: "fan",      name: "Fan Pack",       stars: 500,  pesewas: 2000  }, // GHS 20
-  { id: "superfan", name: "Super Fan",      stars: 1200, pesewas: 4500  }, // GHS 45
-  { id: "legend",   name: "Legend Pack",    stars: 3000, pesewas: 10000 }, // GHS 100
+  { id: "starter",  name: "Starter Pack",  stars: 100,  cents: 200  }, // $2
+  { id: "fan",      name: "Fan Pack",       stars: 500,  cents: 800  }, // $8
+  { id: "superfan", name: "Super Fan",      stars: 1200, cents: 1800 }, // $18
+  { id: "legend",   name: "Legend Pack",    stars: 3000, cents: 4000 }, // $40
 ] as const;
 
-export const MYSTIC_PREMIUM_PESEWAS = 1500; // GHS 15
+export const MYSTIC_PREMIUM_CENTS = 500; // $5
 
 // ─── Helper: get user's email from Clerk ─────────────────────────────────────
 async function getUserEmail(clerkId: string): Promise<string> {
@@ -66,12 +66,12 @@ router.get("/paystack/products", (_req: Request, res: Response) => {
   res.json({
     coinPacks: COIN_PACKS.map((p) => ({
       ...p,
-      priceGhs: p.pesewas / 100,
+      priceUsd: p.cents / 100,
     })),
     mysticPremium: {
       name: "Mystic Premium",
       description: "Unlimited ships, actresses, series & characters",
-      priceGhs: MYSTIC_PREMIUM_PESEWAS / 100,
+      priceUsd: MYSTIC_PREMIUM_CENTS / 100,
     },
   });
 });
@@ -98,7 +98,7 @@ router.post("/paystack/checkout/coins", async (req: Request, res: Response) => {
 
     const init = await initializeTransaction({
       email,
-      amountPesewas: pack.pesewas,
+      amountCents: pack.cents,
       reference,
       callbackUrl: `${origin}/api/paystack/verify`,
       metadata: {
@@ -126,7 +126,6 @@ router.post("/paystack/checkout/mystic-premium", async (req: Request, res: Respo
     const user = await getOrCreateUser(clerkId);
     if (!user) { res.status(401).json({ error: "User not found" }); return; }
 
-    // Check if already premium
     const [fmUser] = await db
       .select({ subscriptionTier: fmUsersTable.subscriptionTier })
       .from(fmUsersTable)
@@ -143,7 +142,7 @@ router.post("/paystack/checkout/mystic-premium", async (req: Request, res: Respo
 
     const init = await initializeTransaction({
       email,
-      amountPesewas: MYSTIC_PREMIUM_PESEWAS,
+      amountCents: MYSTIC_PREMIUM_CENTS,
       reference,
       callbackUrl: `${origin}/api/paystack/verify`,
       metadata: {
@@ -161,7 +160,6 @@ router.post("/paystack/checkout/mystic-premium", async (req: Request, res: Respo
 });
 
 // ─── GET /paystack/verify — Paystack redirects here after payment ─────────────
-// Also used by the frontend to manually trigger verification.
 router.get("/paystack/verify", async (req: Request, res: Response) => {
   const reference = req.query.reference as string;
   if (!reference) { res.status(400).json({ error: "reference is required" }); return; }
@@ -170,7 +168,6 @@ router.get("/paystack/verify", async (req: Request, res: Response) => {
     const data = await verifyTransaction(reference);
 
     if (data.status !== "success") {
-      // Redirect to frontend with failure indicator
       const origin = getPublicOrigin(req);
       res.redirect(`${origin}/?payment=failed&reference=${reference}`);
       return;
@@ -209,7 +206,6 @@ router.post("/paystack/verify", async (req: Request, res: Response) => {
   try {
     const data = await verifyTransaction(reference);
 
-    // Confirm the reference belongs to this user
     if (data.metadata.clerkId && data.metadata.clerkId !== clerkId) {
       res.status(403).json({ error: "Forbidden" });
       return;
@@ -263,11 +259,11 @@ async function fulfillCoinPack(data: import("../lib/paystackClient").PaystackVer
       targetRef: data.reference,
     });
 
-    const priceGhs = data.amount / 100;
+    const priceUsd = data.amount / 100;
     await tx.insert(coinPurchasesTable).values({
       userId,
       packSize: stars,
-      pricePaid: String(priceGhs),
+      pricePaid: String(priceUsd),
       stripePaymentIntentId: data.reference,
     });
 

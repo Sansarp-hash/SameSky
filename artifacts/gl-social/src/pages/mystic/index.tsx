@@ -142,7 +142,7 @@ export default function MysticDashboardPage() {
                 {loading === "mystic" ? (
                   <><Loader2 className="w-3 h-3 animate-spin" /> Wait...</>
                 ) : (
-                  "Upgrade — GHS 15"
+                  "Upgrade — $5"
                 )}
               </button>
             </div>

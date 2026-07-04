@@ -1,15 +1,17 @@
 import { useDashboardSummary } from "@/hooks/use-mystic";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles, Heart, Star, Tv, Moon, Sun } from "lucide-react";
+import { Sparkles, Heart, Star, Tv, Moon, Sun, Zap, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePaystack } from "@/hooks/use-paystack";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: summary, isLoading } = useDashboardSummary();
+  const { upgradeMystic, loading } = usePaystack();
 
   if (isLoading || !summary) {
     return (
@@ -34,6 +36,27 @@ export default function Dashboard() {
         <h1 className="text-3xl font-serif text-primary mb-2">Welcome, {user?.username}</h1>
         <p className="text-muted-foreground">Your mystical sanctuary awaits. Explore the stars and your favorite ships.</p>
       </div>
+
+      {/* Upgrade banner — free tier only */}
+      {!summary.isPremium && (
+        <div className="flex items-center gap-4 bg-secondary/10 border border-secondary/20 rounded-2xl px-5 py-4">
+          <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+            <Zap className="w-5 h-5 text-secondary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-white">Mystic Premium — GHS 15</p>
+            <p className="text-sm text-muted-foreground">Unlock 30 ships, actresses, characters and series</p>
+          </div>
+          <Button
+            onClick={() => upgradeMystic()}
+            disabled={loading}
+            variant="outline"
+            className="shrink-0 border-secondary/40 text-secondary hover:bg-secondary/10"
+          >
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Wait...</> : "Upgrade"}
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card/50 backdrop-blur border-primary/20">
@@ -82,7 +105,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalCharacters}</div>
-            <p className="text-xs text-muted-foreground mt-2">Analyzed & flagged</p>
+            <p className="text-xs text-muted-foreground mt-2">Analyzed and flagged</p>
           </CardContent>
         </Card>
       </div>
@@ -100,7 +123,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {summary.todayTarotDone ? (
-              <p className="text-sm text-muted-foreground mb-4">You've drawn your cards for today. Reflect on their meaning.</p>
+              <p className="text-sm text-muted-foreground mb-4">You have drawn your cards for today. Reflect on their meaning.</p>
             ) : (
               <p className="text-sm mb-4">The cards are waiting for you today. What will they reveal?</p>
             )}
@@ -124,7 +147,7 @@ export default function Dashboard() {
             {summary.hasAstrology ? (
               <p className="text-sm text-muted-foreground mb-4">Your celestial chart is mapped. Review your destined paths.</p>
             ) : (
-              <p className="text-sm mb-4">You haven't generated your astrology profile yet. Discover your cosmic traits.</p>
+              <p className="text-sm mb-4">You have not generated your astrology profile yet. Discover your cosmic traits.</p>
             )}
             <Button asChild variant="outline" className="border-secondary/50 text-secondary hover:bg-secondary/10">
               <Link href="/astrology">{summary.hasAstrology ? "View Profile" : "Generate Profile"}</Link>

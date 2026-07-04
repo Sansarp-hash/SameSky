@@ -169,7 +169,7 @@ router.get("/paystack/verify", async (req: Request, res: Response) => {
     } else if (type === "mystic_premium") {
       await fulfillMysticPremium(data);
       const origin = `${req.protocol}://${req.get("host")}`;
-      res.redirect(`${origin}/mystic?payment=success&reference=${reference}`);
+      res.redirect(`${origin}/?payment=success&type=mystic_premium&reference=${reference}`);
     } else {
       res.status(400).json({ error: "Unknown payment type" });
     }

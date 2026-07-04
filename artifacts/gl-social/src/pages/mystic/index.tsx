@@ -1,11 +1,13 @@
 import MysticNav from "@/components/mystic/MysticNav";
 import { useDashboardSummary, useMysticProfile } from "@/hooks/use-mystic";
 import { Link } from "wouter";
-import { Heart, Star, Tv, Moon, Sparkles, Zap, ChevronRight } from "lucide-react";
+import { Heart, Star, Tv, Moon, Sparkles, Zap, ChevronRight, Loader2 } from "lucide-react";
+import { usePaystack } from "@/hooks/use-paystack";
 
 export default function MysticDashboardPage() {
   const { data: summary, isLoading } = useDashboardSummary();
   const { data: profile } = useMysticProfile();
+  const { upgradeMystic, loading } = usePaystack();
 
   return (
     <div>
@@ -122,8 +124,9 @@ export default function MysticDashboardPage() {
             </div>
           </Link>
 
+          {/* Upgrade banner — only shown on free tier */}
           {!summary?.isPremium && (
-            <div className="flex items-center gap-4 bg-secondary/10 border border-secondary/20 rounded-2xl px-4 py-3.5">
+            <div className="flex items-center gap-4 bg-secondary/10 border border-secondary/20 rounded-2xl px-4 py-4">
               <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
                 <Zap className="w-4 h-4 text-secondary" />
               </div>
@@ -131,6 +134,17 @@ export default function MysticDashboardPage() {
                 <p className="text-sm font-medium text-white">Free tier — {summary?.limits.ships ?? 3} item limit</p>
                 <p className="text-xs text-white/40">Premium unlocks 30 ships, actresses and more</p>
               </div>
+              <button
+                onClick={() => upgradeMystic()}
+                disabled={loading === "mystic"}
+                className="shrink-0 text-xs font-semibold bg-secondary/20 hover:bg-secondary/30 border border-secondary/30 text-secondary px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {loading === "mystic" ? (
+                  <><Loader2 className="w-3 h-3 animate-spin" /> Wait...</>
+                ) : (
+                  "Upgrade — GHS 15"
+                )}
+              </button>
             </div>
           )}
         </div>

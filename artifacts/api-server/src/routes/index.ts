@@ -9,6 +9,7 @@ import adminRouter from "./admin";
 import followsRouter from "./follows";
 import searchRouter from "./search";
 import storageRouter from "./storage";
+import mysticRouter from "./mystic";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use("/notifications", notificationsRouter);
 router.use("/admin", adminRouter);
 router.use("/search", searchRouter);
 router.use("/storage", storageRouter);
+router.use("/mystic", mysticRouter);
 
 export default router;

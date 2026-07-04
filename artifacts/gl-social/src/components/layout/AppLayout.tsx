@@ -14,7 +14,10 @@ import {
   Menu,
   Heart,
   Search,
-  Sparkles
+  Sparkles,
+  Film,
+  Play,
+  Anchor
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -29,6 +32,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/feed", label: "Feed", icon: Home },
     { href: "/search", label: "Search", icon: Search },
+    { href: "/ships", label: "Ships", icon: Anchor },
+    { href: "/series", label: "Canon Series", icon: Film },
+    { href: "/shorts", label: "Shorts", icon: Play },
     { href: "/raffles", label: "Community", icon: Tv },
     { href: "/mystic", label: "Mystic Profile", icon: Sparkles },
     { href: "/profile", label: "Profile", icon: UserIcon },

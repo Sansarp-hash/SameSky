@@ -15,6 +15,7 @@ export const profileVisibilityEnum = pgEnum("profile_visibility", [
 ]);
 
 export const contentTierEnum = pgEnum("content_tier", [
+  "no_media_access",
   "sfw_only",
   "mature",
   "explicit_eligible",
@@ -48,7 +49,7 @@ export const usersTable = pgTable("users", {
   dob: timestamp("dob", { withTimezone: true }),
   ageVerified: boolean("age_verified").notNull().default(false),
   adultVerified: boolean("adult_verified").notNull().default(false),
-  contentTier: contentTierEnum("content_tier").notNull().default("sfw_only"),
+  contentTier: contentTierEnum("content_tier").notNull().default("no_media_access"),
   emailVerified: boolean("email_verified").notNull().default(false),
 
   premiumStatus: boolean("premium_status").notNull().default(false),

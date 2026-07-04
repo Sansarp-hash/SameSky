@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, bigint, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, bigint, jsonb, numeric, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { actressProfilesTable } from "./actress_profiles";
@@ -65,12 +65,31 @@ export const virtualGiftLogTable = pgTable("virtual_gift_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
+  "pending",
+  "processed",
+  "rejected",
+]);
+
 export const withdrawalRequestsTable = pgTable("withdrawal_requests", {
   id: serial("id").primaryKey(),
   actressId: integer("actress_id").notNull().references(() => actressProfilesTable.id, { onDelete: "cascade" }),
-  amount: integer("amount").notNull(),
-  payoutMethod: text("payout_method").notNull(),
-  status: text("status").notNull().default("pending"),
+  coinAmount: bigint("coin_amount", { mode: "number" }).notNull(),
+  cashEquivalentUsd: numeric("cash_equivalent_usd", { precision: 12, scale: 2 }).notNull(),
+  platformRevenueCutUsd: numeric("platform_revenue_cut_usd", { precision: 12, scale: 2 }).notNull(),
+  payoutMethodSnapshot: jsonb("payout_method_snapshot").notNull().default({}),
+  status: withdrawalStatusEnum("status").notNull().default("pending"),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const actressEarningsTable = pgTable("actress_earnings", {
+  id: serial("id").primaryKey(),
+  actressId: integer("actress_id").notNull().references(() => actressProfilesTable.id, { onDelete: "cascade" }),
+  liveStreamId: integer("live_stream_id").references(() => liveStreamsTable.id, { onDelete: "set null" }),
+  originTransactionId: integer("origin_transaction_id"),
+  grossCoins: bigint("gross_coins", { mode: "number" }).notNull(),
+  netCashValueUsd: numeric("net_cash_value_usd", { precision: 12, scale: 2 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -84,3 +103,5 @@ export const insertLiveStreamSchema = createInsertSchema(liveStreamsTable).omit(
 });
 export type InsertLiveStream = z.infer<typeof insertLiveStreamSchema>;
 export type LiveStream = typeof liveStreamsTable.$inferSelect;
+export type WithdrawalRequest = typeof withdrawalRequestsTable.$inferSelect;
+export type ActressEarnings = typeof actressEarningsTable.$inferSelect;

@@ -19,3 +19,7 @@ export * from "./raffles_advanced";
 export * from "./career";
 export * from "./reports";
 export * from "./homepage";
+export * from "./gift_catalogue";
+export * from "./content_submissions";
+export * from "./analytics";
+export * from "./i18n";

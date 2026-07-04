@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import '@clerk/themes/shadcn.css';
@@ -48,37 +48,37 @@
 }
 
 :root {
-  --background: 224 71% 4%;
-  --foreground: 213 31% 91%;
-  --border: 216 34% 17%;
+  --background: 230 15% 6%;
+  --foreground: 210 40% 98%;
+  --border: 230 15% 15%;
   
-  --card: 222 47% 11%;
-  --card-foreground: 213 31% 91%;
-  --card-border: 216 34% 17%;
+  --card: 230 15% 9%;
+  --card-foreground: 210 40% 98%;
+  --card-border: 230 15% 15%;
 
-  --popover: 224 71% 4%;
-  --popover-foreground: 215 20.2% 65.1%;
-  --popover-border: 216 34% 17%;
+  --popover: 230 15% 6%;
+  --popover-foreground: 210 40% 98%;
+  --popover-border: 230 15% 15%;
 
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 1.2%;
+  --primary: 310 100% 65%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 222.2 47.4% 11.2%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 200 100% 60%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 223 47% 11%;
-  --muted-foreground: 215.4 16.3% 56.9%;
+  --muted: 230 15% 15%;
+  --muted-foreground: 215 20% 65%;
 
-  --accent: 216 34% 17%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 310 100% 65%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 63% 31%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
 
-  --input: 216 34% 17%;
-  --ring: 216 34% 17%;
+  --input: 230 15% 15%;
+  --ring: 310 100% 65%;
   
-  --app-font-sans: 'Plus Jakarta Sans', sans-serif;
+  --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.75rem;

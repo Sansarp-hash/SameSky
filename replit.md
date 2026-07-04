@@ -1,6 +1,6 @@
-# GL Social
+# SameSky
 
-A social platform where users earn GL Coins and enter raffles for prizes — community-driven, fast, energetic.
+The dedicated home for Thai GL (Girl's Love) series fans worldwide — discover series, celebrate ships, share GL shorts and clips, and connect with the global GL community. Community participation earns Stars (virtual currency) redeemable for Community Drops.
 
 ## Run & Operate
 
@@ -38,27 +38,29 @@ A social platform where users earn GL Coins and enter raffles for prizes — com
 - **JIT user provisioning**: Users are created in the local DB on first API call via `getOrCreateUser()`. Clerk ID is the foreign key linking Clerk identity to the local user record.
 - **OpenAPI-first**: All API contracts are defined in `openapi.yaml` before implementation. Never hand-write types that codegen produces.
 - **Role system**: `free`, `premium`, `admin` — stored in DB. Admin role gates all `/admin` routes server-side AND client-side.
-- **GL Coins**: Simple integer balance on the user record; all changes go through `coin_transactions` table for audit trail.
+- **Stars (GL Coins)**: Virtual currency shown as "Stars" in the UI; all changes go through `coin_transactions` table for audit trail. The DB/API column is still named `coinBalance` / `coin_transactions` — only the UI label changed.
 
 ## Product
 
-- **Social feed**: Post text + images, like and comment on posts, basic hashtag support
-- **GL Coins**: Virtual currency; admins can add coins to users manually; spent on raffle entries
-- **Raffles**: Time-boxed entry windows, coin-cost to enter, admin draws random winner
-- **Notifications**: In-app alerts for raffle events, likes, comments, coin credits
-- **Admin panel**: User management (ban/unban, add coins), raffle creation + winner draw, platform stats dashboard
+- **Social feed**: Post text, like and comment on posts, hashtag support — centered on Thai GL series discussion
+- **Stars**: Virtual currency earned through community activity; admins can add Stars to users manually
+- **Community Drops**: Time-boxed entry windows (raffles), Star cost to enter, admin draws random winner
+- **Notifications**: In-app alerts for drop events, likes, comments, Star credits
+- **Admin panel**: User management (ban/unban, add Stars), drop creation + winner draw, platform stats
 
 ## User preferences
 
 - No emojis in the UI
-- Bold, energetic neo-brutalist aesthetic
+- Classy, sleek dark aesthetic — X + TikTok + Twitch inspired
+- Main focus is Thai GL content community; Stars/drops are secondary/subtle
 
 ## Gotchas
 
 - Run `pnpm --filter @workspace/api-spec run codegen` after every change to `openapi.yaml`
 - Run `pnpm --filter @workspace/db run push` after every schema change in `lib/db/src/schema/`
 - Clerk dev keys show a console warning — this is expected and harmless in development
-- The first signed-in user with a `free` role needs to be manually promoted to `admin` via direct DB update: `UPDATE users SET role = 'admin' WHERE clerk_id = '<your-clerk-id>';`
+- The first signed-in user needs to be manually promoted to admin via direct DB update: `UPDATE users SET role = 'admin' WHERE clerk_id = '<your-clerk-id>';`
+- The DB/API uses `coinBalance` and `coin_transactions` — the UI renames these to "Stars" but the backend stays as-is
 
 ## Pointers
 

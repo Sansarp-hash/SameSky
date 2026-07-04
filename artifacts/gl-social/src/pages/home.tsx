@@ -1,77 +1,98 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Ticket, Users, Coins, Sparkles } from "lucide-react";
+import { ArrowRight, Play, Globe, Heart } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden relative text-white selection:bg-primary selection:text-primary-foreground">
-      {/* Sleek ambient background */}
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden relative text-foreground selection:bg-primary/30">
+      {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-secondary/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
-        <div className="absolute top-[40%] left-[30%] w-[30%] h-[30%] bg-accent/20 rounded-full blur-[100px] mix-blend-screen opacity-40" />
+        <div className="absolute top-[-20%] left-[-10%] w-[55%] h-[55%] rounded-full blur-[140px] opacity-20" style={{ background: "radial-gradient(circle, #e879f9, transparent)" }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] opacity-15" style={{ background: "radial-gradient(circle, #38bdf8, transparent)" }} />
+        <div className="absolute top-[50%] left-[40%] w-[35%] h-[35%] rounded-full blur-[120px] opacity-10" style={{ background: "radial-gradient(circle, #818cf8, transparent)" }} />
       </div>
-      
-      <header className="px-6 py-5 flex items-center justify-between relative z-10 border-b border-white/5 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-tr from-white/10 to-white/20 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-            <span className="text-white font-bold text-lg tracking-tighter">GL</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tight text-white">Social</span>
+
+      {/* Header */}
+      <header className="px-6 py-4 flex items-center justify-between relative z-10 border-b border-white/5">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.svg" alt="SameSky" className="w-9 h-9 rounded-xl" />
+          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-fuchsia-400 via-violet-400 to-sky-400 bg-clip-text text-transparent">SameSky</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link href="/sign-in">
-            <Button variant="ghost" className="hidden sm:flex font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">Log In</Button>
+            <Button variant="ghost" className="font-medium text-white/70 hover:text-white hover:bg-white/8 transition-colors text-sm">
+              Log In
+            </Button>
           </Link>
           <Link href="/sign-up">
-            <Button className="rounded-full px-6 font-semibold shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transition-all bg-white text-black hover:bg-white/90">
-              Join the Club
+            <Button className="rounded-full px-5 text-sm font-semibold bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_24px_rgba(232,121,249,0.3)] hover:shadow-[0_0_32px_rgba(232,121,249,0.45)]">
+              Join SameSky
             </Button>
           </Link>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10">
-        <div className="max-w-4xl mx-auto space-y-8 mt-12 mb-24">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-white/80 font-medium text-sm tracking-wide">The Premium Social Experience</span>
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 relative z-10 text-center">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-sm text-white/60 font-medium mb-2">
+            <span className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
+            Thai GL Series, Ships &amp; Shorts
           </div>
-          
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[1.1] mb-6 text-white animate-in fade-in slide-in-from-bottom-6 duration-1000">
-            Connect. <br className="md:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Earn.</span> <br className="md:hidden" />
-            Win.
+
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.05] text-white">
+            One sky.<br />
+            <span className="bg-gradient-to-r from-fuchsia-400 via-violet-400 to-sky-400 bg-clip-text text-transparent">
+              Every ship.
+            </span>
           </h1>
-          
-          <p className="text-lg md:text-xl font-normal text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
-            A refined social network where your interactions carry real value. Earn GL Coins for your activity and gain access to exclusive high-stakes raffles.
+
+          <p className="text-base md:text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
+            SameSky is where Thai GL fans live — discover series, celebrate ships, share clips, and connect with the global GL community.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link href="/sign-up">
-              <Button size="lg" className="w-full sm:w-auto h-14 rounded-full px-8 text-base font-semibold shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all bg-white text-black hover:bg-white/90">
-                Get Started <ArrowRight className="ml-2 w-5 h-5" />
+              <Button
+                size="lg"
+                data-testid="button-get-started"
+                className="h-12 rounded-full px-8 text-sm font-semibold bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_28px_rgba(232,121,249,0.25)] hover:shadow-[0_0_36px_rgba(232,121,249,0.4)] hover:-translate-y-0.5"
+              >
+                Start watching <ArrowRight className="ml-1.5 w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href="/sign-in">
+              <Button
+                size="lg"
+                variant="ghost"
+                data-testid="button-log-in"
+                className="h-12 rounded-full px-8 text-sm font-medium text-white/60 hover:text-white hover:bg-white/8"
+              >
+                Already a member
               </Button>
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto text-left w-full animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500 pb-24">
-          <FeatureCard 
-            icon={<Users className="w-6 h-6" />}
-            title="The Feed"
-            description="Share your moments in a beautifully crafted environment designed for focus and quality."
+        {/* Feature grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-20 max-w-4xl mx-auto w-full text-left">
+          <FeatureCard
+            icon={<Play className="w-5 h-5" />}
+            iconColor="text-fuchsia-400"
+            title="Thai GL Series"
+            description="Discuss and discover the best Thai GL dramas — from GAP and Y-Destiny to the latest drops."
           />
-          <FeatureCard 
-            icon={<Coins className="w-6 h-6" />}
-            title="The Treasury"
-            description="Every post and interaction deposits GL Coins into your secure personal wallet."
+          <FeatureCard
+            icon={<Heart className="w-5 h-5" />}
+            iconColor="text-violet-400"
+            title="Ships &amp; Shorts"
+            description="Celebrate your favorite GL ships and share GL short clips from Thailand and beyond."
           />
-          <FeatureCard 
-            icon={<Ticket className="w-6 h-6" />}
-            title="The Vault"
-            description="Redeem your earned coins to enter exclusive raffles for premium physical and digital prizes."
+          <FeatureCard
+            icon={<Globe className="w-5 h-5" />}
+            iconColor="text-sky-400"
+            title="Global Community"
+            description="Connect with GL fans from Thailand and across the world. One community, same sky."
           />
         </div>
       </main>
@@ -79,14 +100,22 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({
+  icon,
+  iconColor,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  iconColor: string;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors group">
-      <div className="w-12 h-12 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 ease-out border border-white/5 shadow-inner">
-        {icon}
-      </div>
-      <h3 className="text-xl font-semibold mb-3 tracking-tight text-white">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">{description}</p>
+    <div className="bg-white/4 backdrop-blur-xl p-6 rounded-2xl border border-white/8 hover:bg-white/7 hover:border-white/12 transition-all group">
+      <div className={`mb-4 ${iconColor}`}>{icon}</div>
+      <h3 className="text-base font-semibold mb-2 text-white">{title}</h3>
+      <p className="text-sm text-white/45 leading-relaxed">{description}</p>
     </div>
   );
 }

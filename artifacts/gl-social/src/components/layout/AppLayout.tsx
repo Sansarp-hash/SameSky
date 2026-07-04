@@ -4,17 +4,17 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
   Home, 
-  Ticket, 
+  Tv, 
   User as UserIcon, 
-  Coins, 
+  Star, 
   Bell, 
   Settings, 
   ShieldAlert,
   LogOut,
-  Menu
+  Menu,
+  Heart
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: me } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -26,9 +26,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/feed", label: "Feed", icon: Home },
-    { href: "/raffles", label: "Raffles", icon: Ticket },
+    { href: "/raffles", label: "Community", icon: Tv },
     { href: "/profile", label: "Profile", icon: UserIcon },
-    { href: "/coins", label: "Wallet", icon: Coins },
+    { href: "/coins", label: "Stars Wallet", icon: Star },
     { href: "/notifications", label: "Notifications", icon: Bell, badge: notifs?.notifications?.length },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
@@ -38,25 +38,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const NavContent = () => (
-    <div className="flex flex-col h-full bg-card/40 backdrop-blur-3xl border-r border-white/5 w-64 p-6 z-10 relative">
-      <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 bg-gradient-to-tr from-white/10 to-white/20 rounded-xl flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
-          <span className="text-white font-bold text-lg tracking-tighter">GL</span>
+    <div className="flex flex-col h-full bg-background border-r border-white/5 w-64 p-6 z-10 relative">
+      <div className="flex items-center gap-3 mb-10 px-2">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary shadow-[0_0_15px_rgba(255,105,180,0.5)]">
+          <Heart className="w-5 h-5 text-white fill-white" />
         </div>
-        <span className="text-xl font-semibold tracking-tight text-white">Social</span>
+        <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">SameSky</span>
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-2">
         {navItems.map((item) => {
           const isActive = location === item.href || (item.href !== "/feed" && location.startsWith(item.href));
           const Icon = item.icon;
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-medium text-sm transition-all cursor-pointer ${isActive ? 'bg-white/10 text-white shadow-inner' : 'text-muted-foreground hover:text-white hover:bg-white/5'}`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
+              <div className={`flex items-center gap-4 px-4 py-3 rounded-full font-medium text-[15px] transition-all cursor-pointer ${isActive ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:text-white hover:bg-white/5'}`}>
+                <Icon className={`w-6 h-6 ${isActive ? 'text-primary' : ''}`} />
                 <span>{item.label}</span>
                 {item.badge ? (
-                  <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 ) : null}
@@ -66,20 +66,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
+      <div className="mt-auto pt-6 space-y-4 px-2">
         {me && (
-          <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between border border-white/5">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-muted-foreground mb-1">Balance</span>
-              <span className="font-semibold tracking-tight text-white flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 text-primary" /> {me.coinBalance.toLocaleString()} GL
+              <span className="text-xs font-medium text-muted-foreground mb-1">Stars Balance</span>
+              <span className="font-semibold tracking-tight text-white flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-secondary fill-secondary" /> {me.coinBalance.toLocaleString()}
               </span>
             </div>
           </div>
         )}
         <Button 
           variant="ghost" 
-          className="w-full justify-start gap-3 font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-xl px-4"
+          className="w-full justify-start gap-4 font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-full px-4 h-12"
           onClick={() => signOut({ redirectUrl: basePath || "/" })}
         >
           <LogOut className="w-5 h-5" />
@@ -91,22 +91,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex bg-background text-foreground selection:bg-primary/30">
-      {/* Background ambient glow */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[20%] left-[-20%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[150px] mix-blend-screen opacity-50" />
-      </div>
-
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block z-10 sticky top-0 h-[100dvh]">
+      <div className="hidden lg:flex z-10 sticky top-0 h-[100dvh] justify-end xl:w-1/3 min-w-[280px]">
         <NavContent />
       </div>
 
       {/* Mobile Header & Nav */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-tr from-white/10 to-white/20 rounded-lg flex items-center justify-center border border-white/10">
-            <span className="text-white font-bold text-sm tracking-tighter">GL</span>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+            <Heart className="w-4 h-4 text-white fill-white" />
           </div>
+          <span className="text-lg font-bold tracking-tight text-white">SameSky</span>
         </div>
         <Sheet>
           <SheetTrigger asChild>
@@ -121,9 +117,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[800px] mx-auto lg:p-10 p-4 pt-24 lg:pt-10 min-h-screen z-10 relative">
-        {children}
+      <main className="flex-1 w-full lg:max-w-[680px] lg:border-r lg:border-white/5 min-h-screen z-10 relative">
+        <div className="pt-14 lg:pt-0">
+          {children}
+        </div>
       </main>
+      
+      {/* Right Sidebar (empty for layout balance on large screens) */}
+      <div className="hidden xl:block flex-1 min-w-[300px]" />
     </div>
   );
 }

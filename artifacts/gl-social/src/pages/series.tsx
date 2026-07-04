@@ -163,7 +163,7 @@ export default function SeriesPage() {
     <div className="min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-xl border-b border-white/5 px-6 py-4">
-        <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Canon Series</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Canons</h1>
         <p className="text-sm text-white/40">Thai GL series — officially aired and fan-celebrated</p>
       </div>
 

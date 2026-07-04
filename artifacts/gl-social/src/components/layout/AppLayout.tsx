@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: "/feed", label: "Feed", icon: Home },
     { href: "/search", label: "Search", icon: Search },
     { href: "/ships", label: "Ships", icon: Anchor },
-    { href: "/series", label: "Canon Series", icon: Film },
+    { href: "/series", label: "Canons", icon: Film },
     { href: "/shorts", label: "Shorts", icon: Play },
     { href: "/raffles", label: "Community", icon: Tv },
     { href: "/mystic", label: "Mystic Profile", icon: Sparkles },
